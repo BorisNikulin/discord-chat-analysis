@@ -58,8 +58,7 @@ def get_next_message_id(response):
     assumes there is at least one message
     which the while loop ensures"""
     # messages should be in reverse chronological order so next id is the last message
-    json_response = response.json()
-    return json_response[-1]['id']
+    return response.json()[-1]['id']
 
 if __name__ == '__main__':
     main()
