@@ -136,3 +136,7 @@ venv.bak/
 .mypy_cache/
 
 *.swp
+
+# chat logs generated from python script
+*.json
+*.csv
