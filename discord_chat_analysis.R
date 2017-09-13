@@ -26,6 +26,7 @@ words <- chat %>%
 	mutate(message = str_replace(message, 'https?\\S+', '')) %>%
 	unnest_tokens(word, message) %>%
 	anti_join(stop_words) %>%
+	filter(!str_detect(word, '\\d{3,}')) %>%
 	count(username, word) %>%
 	ungroup() %>%
 	arrange(desc(n))
@@ -36,6 +37,8 @@ bigrams <- chat %>%
 	separate(bigram, c('word1', 'word2'), sep = ' ') %>%
 	filter(!word1 %in% stop_words$word) %>%
 	filter(!word2 %in% stop_words$word) %>%
+	filter(!str_detect(word1, '\\d{4,}')) %>%
+	filter(!str_detect(word2, '\\d{4,}')) %>%
 	count(username, word1, word2) %>%
 	ungroup() %>%
 	arrange(desc(n))
@@ -78,7 +81,7 @@ words %>%
 
 bigrams %>%
 	select(-username) %>%
-	filter(n > 20) %>%
+	filter(n > 11) %>%
 	graph_from_data_frame() %>%
 	ggraph(layout = "fr") +
 	geom_edge_link(aes(edge_alpha = n), show.legend = FALSE,
