@@ -15,7 +15,7 @@ library(ggraph)
 chat_json <- read_json('./discord_chat.json')
 
 timestamps <- map(chat_json, ~.x$timestamp) %>% unlist() %>% ymd_hms()
-usernames <- map(chat_json, ~.$author$username) %>% unlist() %>% as.factor()
+usernames <- map(chat_json, ~.x$author$username) %>% unlist() %>% as.factor()
 messages <- map(chat_json, ~.x$content) %>% unlist()
 
 big3 = c('Focu5', 'Caje', 'William') %>% as.factor()
