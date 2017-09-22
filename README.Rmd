@@ -34,7 +34,7 @@ structure for processing.
 Therefore I extracted the relavent fields with
 [purrr](https://cran.r-project.org/web/packages/purrr/vignettes/other-langs.html) and then stiched it back together into a
 [tibble](https://cran.r-project.org/web/packages/tibble/vignettes/tibble.html).
-Then I checked the result with [dplyr's](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html).
+Then I checked the result with [dplyr's](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html) glimpse.
 
 ```{r import_tibble}
 library(purrr)
