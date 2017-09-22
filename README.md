@@ -18,12 +18,13 @@ library(jsonlite)
 chat_json <- read_json('discord_chat_anonymized.json')
 ```
 
-This imports the json chat log as a and R list. However, the list is not uniform in fields across message entries as some messages have reactions or are missing the field entriely. This prevents running the R json list into `data.table::rbindlist` to quickly convert convert the json into a data.frame like structure for processing. Therefore I extracted the relavent fields with [purrr](https://cran.r-project.org/web/packages/purrr/vignettes/other-langs.html) and then stiched it back together into a [tibble](https://cran.r-project.org/web/packages/tibble/vignettes/tibble.html).
+This imports the json chat log as a and R list. However, the list is not uniform in fields across message entries as some messages have reactions or are missing the field entriely. This prevents running the R json list into `data.table::rbindlist` to quickly convert convert the json into a data.frame like structure for processing. Therefore I extracted the relavent fields with [purrr](https://cran.r-project.org/web/packages/purrr/vignettes/other-langs.html) and then stiched it back together into a [tibble](https://cran.r-project.org/web/packages/tibble/vignettes/tibble.html). Then I checked the result with [dplyr's](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html).
 
 ``` r
 library(purrr)
 library(lubridate)
 library(tibble)
+library(dplyr)
 
 timestamps <- map(chat_json, ~.x$timestamp) %>% unlist() %>% ymd_hms()
 usernames <- map(chat_json, ~.x$author$username) %>% unlist() %>% as.factor()
@@ -31,19 +32,14 @@ messages <- map(chat_json, ~.x$content) %>% unlist()
 
 chat <- tibble(timestamap = timestamps, username = usernames, message = messages)
 
-head(chat)
+glimpse(chat)
 ```
 
-    ## # A tibble: 6 x 3
-    ##            timestamap username
-    ##                <dttm>   <fctr>
-    ## 1 2017-09-12 08:03:34 Benjamin
-    ## 2 2017-09-12 08:03:17 Benjamin
-    ## 3 2017-09-12 08:03:10 Benjamin
-    ## 4 2017-09-12 08:03:05 Benjamin
-    ## 5 2017-09-12 07:59:18  Wallace
-    ## 6 2017-09-12 07:59:01 Benjamin
-    ## # ... with 1 more variables: message <chr>
+    ## Observations: 245,977
+    ## Variables: 3
+    ## $ timestamap <dttm> 2017-09-12 08:03:34, 2017-09-12 08:03:17, 2017-09-...
+    ## $ username   <fctr> Benjamin, Benjamin, Benjamin, Benjamin, Wallace, B...
+    ## $ message    <chr> "although the rate limits are probably the most *ra...
 
 Data Anlysis
 ------------

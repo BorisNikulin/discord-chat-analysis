@@ -34,11 +34,13 @@ structure for processing.
 Therefore I extracted the relavent fields with
 [purrr](https://cran.r-project.org/web/packages/purrr/vignettes/other-langs.html) and then stiched it back together into a
 [tibble](https://cran.r-project.org/web/packages/tibble/vignettes/tibble.html).
+Then I checked the result with [dplyr's](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html).
 
 ```{r import_tibble}
 library(purrr)
 library(lubridate)
 library(tibble)
+library(dplyr)
 
 timestamps <- map(chat_json, ~.x$timestamp) %>% unlist() %>% ymd_hms()
 usernames <- map(chat_json, ~.x$author$username) %>% unlist() %>% as.factor()
@@ -46,9 +48,8 @@ messages <- map(chat_json, ~.x$content) %>% unlist()
 
 chat <- tibble(timestamap = timestamps, username = usernames, message = messages)
 
-head(chat)
+glimpse(chat)
 ```
-
 ## Data Anlysis
 
 ### Text Tokenization
