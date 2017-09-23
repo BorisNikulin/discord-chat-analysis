@@ -18,19 +18,19 @@ library(jsonlite)
 chat_json <- read_json('discord_chat_anonymized.json')
 ```
 
-This imports the json chat log as a and R list. However, the list is not uniform in fields across message entries as some messages have reactions or are missing the field entriely. This prevents running the R json list into `data.table::rbindlist` to quickly convert convert the json into a data.frame like structure for processing. Therefore I extracted the relavent fields with [purrr](https://cran.r-project.org/web/packages/purrr/vignettes/other-langs.html) and then stiched it back together into a [tibble](https://cran.r-project.org/web/packages/tibble/vignettes/tibble.html). Then I checked the result with [dplyr's](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html).
+This imports the json chat log as a and R list. However, the list is not uniform in fields across message entries as some messages have reactions or are missing the field entriely. This prevents running the R json list into `data.table::rbindlist` to quickly convert convert the json into a data.frame like structure for processing. Therefore I extracted the relavent fields with [purrr](https://cran.r-project.org/web/packages/purrr/vignettes/other-langs.html) and then stiched it back together into a [data.table](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html). I did not use a [tibble](https://cran.r-project.org/web/packages/tibble/vignettes/tibble.html) because I am trying to get familiar with data.table. The initial code in `discord_chat_analysis.R` uses tibbles and dplyr if you want to see that. Then I checked the result with [dplyr's](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html) glimpse.
 
 ``` r
 library(purrr)
 library(lubridate)
-library(tibble)
+library(data.table)
 library(dplyr)
 
 timestamps <- map(chat_json, ~.x$timestamp) %>% unlist() %>% ymd_hms()
 usernames <- map(chat_json, ~.x$author$username) %>% unlist() %>% as.factor()
 messages <- map(chat_json, ~.x$content) %>% unlist()
 
-chat <- tibble(timestamap = timestamps, username = usernames, message = messages)
+chat <- data.table(timestamap = timestamps, username = usernames, message = messages)
 
 glimpse(chat)
 ```
@@ -45,3 +45,27 @@ Data Anlysis
 ------------
 
 ### Text Tokenization
+
+The first step in analyisis is to convert the `chat` data.table into a more convienient [tidy format](http://tidytextmining.com/tidytext.html) with one token per row. This will be done with [tidytext](https://cran.r-project.org/web/packages/tidytext/vignettes/tidytext.html). I will also filter out urls and long digits I discovered later along with anti joining with tidytext's `stop_words`.
+
+``` r
+library(magrittr) # for %<>% (originator of %>%)
+library(stringr)
+library(tidytext)
+
+chat[, message := str_replace(message, '(https?\\S+)|(d{4,})', '')]
+
+words <- chat %>%
+    unnest_tokens(word, message) %>%
+    .[!data.table(stop_words), on = "word"] %>% # anti join
+    .[, .N, .(username, word)] %>%
+    .[order(-N)]
+
+glimpse(words)
+```
+
+    ## Observations: 56,564
+    ## Variables: 3
+    ## $ username <fctr> Benjamin, Wallace, Wallace, Benjamin, Benjamin, Benj...
+    ## $ word     <chr> "lol", "im", "dont", "yeah", "1", "im", "lol", "1", "...
+    ## $ N        <int> 4148, 2005, 1515, 1418, 1386, 1378, 1346, 1336, 1311,...
