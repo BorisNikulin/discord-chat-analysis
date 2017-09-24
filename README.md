@@ -52,19 +52,26 @@ glimpse(chat)
 Data Tidying
 ------------
 
-### Word Tokenization
+### User and Message Tidying
 
-To convert the `chat` data.table into a more convienient [tidy format](http://tidytextmining.com/tidytext.html), with one token per row, we can use [tidytext](https://cran.r-project.org/web/packages/tidytext/vignettes/tidytext.html). URLs, long digits, and common words can cause problems, but they can be filtered out with regex and tidytext's `stop_words`. We also filtered out users who did not message a lot.
+Some users did not post much so we filter them out. On top of filtering users, we remove URLs and long digits with regex.
 
 ``` r
 library(magrittr) # for %<>% (originator of %>%)
 library(stringr)
-library(tidytext)
 
 chat %<>%
     .[!.[, .N, username][N < 100], on = 'username'] %>% # anti join
     .[, username := droplevels(username)] %>%
     .[, message := str_replace(message, '(https?\\S+)|(\\d{4,})', '')]
+```
+
+### Word Tokenization
+
+To convert the `chat` data.table into a more convienient [tidy format](http://tidytextmining.com/tidytext.html), with one token per row, we can use [tidytext](https://cran.r-project.org/web/packages/tidytext/vignettes/tidytext.html). Common words can cause problems, but they can be removed with the help of tidytext's `stop_words`.
+
+``` r
+library(tidytext)
 
 words <- chat %>%
     unnest_tokens(word, message) %>%
