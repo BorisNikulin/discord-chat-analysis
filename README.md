@@ -54,7 +54,7 @@ Data Tidying
 
 ### Word Tokenization
 
-To convert the `chat` data.table into a more convienient [tidy format](http://tidytextmining.com/tidytext.html), with one token per row, we can use [tidytext](https://cran.r-project.org/web/packages/tidytext/vignettes/tidytext.html). URLs, long digits, and common words can cause problems, but they can be filtered out with regex and tidytext's `stop_words`. I also filtered out users who did not message a lot.
+To convert the `chat` data.table into a more convienient [tidy format](http://tidytextmining.com/tidytext.html), with one token per row, we can use [tidytext](https://cran.r-project.org/web/packages/tidytext/vignettes/tidytext.html). URLs, long digits, and common words can cause problems, but they can be filtered out with regex and tidytext's `stop_words`. We also filtered out users who did not message a lot.
 
 ``` r
 library(magrittr) # for %<>% (originator of %>%)
