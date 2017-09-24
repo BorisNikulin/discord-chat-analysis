@@ -70,7 +70,8 @@ library(stringr)
 library(tidytext)
 
 chat %<>%
-	.[username %in% c('Benjamin', 'Wallace', 'Michael', 'Molly', 'Peter')] %>%
+	.[!.[, .N, username][N < 100], on = 'username'] %>% # anti join
+	.[, username := droplevels(username)] %>%
 	.[, message := str_replace(message, '(https?\\S+)|(\\d{4,})', '')]
 
 words <- chat %>%
