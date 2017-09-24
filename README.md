@@ -10,7 +10,7 @@ A large thank you to [William Zhu](https://github.com/ZhuWilliam) for editing th
 Data Acquisition
 ----------------
 
-To get the data needed for analysis, there are two methods. First is the discord api's [Get Channel Message](https://discordapp.com/developers/docs/resources/channel#get-channel-messages) to manually retrieve the messages. The second, is to get a discord bot to do it for you. However, I did not wish to setup a bot, so I used the second method with bare api calls in python.
+To get the data needed for analysis, there are two methods. First is the discord api's [Get Channel Message](https://discordapp.com/developers/docs/resources/channel#get-channel-messages) to manually retrieve the messages. The second, is to get a discord bot to do it for you. However, if you do not wish to setup a bot, you can use the first method to do bare api calls in python.
 
 Big thanks to [DiscordArchiver](https://github.com/Jiiks/DiscordArchiver/blob/master/DiscordArchiver/Program.cs#L15) for the undocumented (and probably old api that may be discontinued on October 16, 2017) url parameter for the token.
 
