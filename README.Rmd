@@ -109,12 +109,37 @@ glimpse(bigrams)
 
 ### Word Counts
 
+What are the top words?
+Here we check the top three words per user.
+
 ```{r analysis_word_counts}
 word_counts <- words %>%
 	.[, .N, .(username, word)] %>%
 	setorder(-N)
 
 word_counts[, head(.SD, 3), username]
+```
+
+How about visually?
+
+```{r analysis_word_counts_graphed}
+library(ggplot2)
+
+#word_counts %>%
+	#.[head(setorder(.[, .(total = sum(N)), word], -total), 20), on = 'word'] %>%
+	#ggplot(aes(reorder(word, total), N, fill = username)) +
+	#geom_col() +
+	#coord_flip()
+
+word_counts %>%
+	.[.[, .(total = sum(N)), word] %>%
+		setorder(-total) %>%
+		head(20)
+	, on = 'word'] %>%
+	ggplot(aes(reorder(word, total), N, fill = username)) +
+	geom_col() +
+	coord_flip() +
+	labs(x = 'Word', y = 'Word Count', fill = 'Username')
 ```
 
 ### Bigram Counts

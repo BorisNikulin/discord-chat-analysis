@@ -114,6 +114,8 @@ Data Analysis
 
 ### Word Counts
 
+What are the top words? Here we check the top three words per user.
+
 ``` r
 word_counts <- words %>%
     .[, .N, .(username, word)] %>%
@@ -138,6 +140,30 @@ word_counts[, head(.SD, 3), username]
     ## 13:    Peter   yeah   37
     ## 14:    Peter people   17
     ## 15:    Peter   guys   17
+
+How about visually?
+
+``` r
+library(ggplot2)
+
+#word_counts %>%
+    #.[head(setorder(.[, .(total = sum(N)), word], -total), 20), on = 'word'] %>%
+    #ggplot(aes(reorder(word, total), N, fill = username)) +
+    #geom_col() +
+    #coord_flip()
+
+word_counts %>%
+    .[.[, .(total = sum(N)), word] %>%
+        setorder(-total) %>%
+        head(20)
+    , on = 'word'] %>%
+    ggplot(aes(reorder(word, total), N, fill = username)) +
+    geom_col() +
+    coord_flip() +
+    labs(x = 'Word', y = 'Word Count', fill = 'Username')
+```
+
+<img src="README_files/figure-markdown_github-ascii_identifiers/analysis_word_counts_graphed-1.svg" style="display: block; margin: auto;" />
 
 ### Bigram Counts
 
