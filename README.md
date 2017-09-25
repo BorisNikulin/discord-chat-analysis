@@ -176,26 +176,8 @@ words_by_day <- words %>%
     .[, .(timestamp = floor_date(timestamp, 'day'))] %>%
     .[, timestamp := floor_date(timestamp, 'day')]%>%
     .[, .(words_in_day = .N), timestamp] %>%
-    .[, day_of_week := wday(timestamp, label = TRUE)] %T>% glimpse()
-```
+    .[, day_of_week := wday(timestamp, label = TRUE)]
 
-    ## Observations: 374
-    ## Variables: 3
-    ## $ timestamp    <dttm> 2017-09-12, 2017-09-11, 2017-09-10, 2017-09-09, ...
-    ## $ words_in_day <int> 769, 221, 122, 1075, 587, 869, 905, 671, 330, 104...
-    ## $ day_of_week  <ord> Tues, Mon, Sun, Sat, Fri, Thurs, Wed, Tues, Mon, ...
-
-``` r
-glimpse(words)
-```
-
-    ## Observations: 371,074
-    ## Variables: 3
-    ## $ timestamp <dttm> 2017-09-12 08:03:34, 2017-09-12 08:03:34, 2017-09-1...
-    ## $ username  <fctr> Benjamin, Benjamin, Benjamin, Benjamin, Benjamin, B...
-    ## $ word      <chr> "rate", "limits", "rate", "limiting", "goodbye", "pe...
-
-``` r
 plot <- ggplot(words_by_day, aes(timestamp, words_in_day)) +
     geom_line() +
     geom_smooth() +
