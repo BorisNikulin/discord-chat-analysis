@@ -143,7 +143,7 @@ word_counts %>%
 ```
 
 ```{r analysis_weekly_chat_rate}
-#TODO: figure out how is masking lubridate::wday
+#TODO: figure out who is masking lubridate::wday
 posts_by_day <- words %>%
 	.[, .(timestamp = floor_date(timestamp, 'day'))] %>%
 	.[, .(posts_in_day = .N), timestamp] %>%

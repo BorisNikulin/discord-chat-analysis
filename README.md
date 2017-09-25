@@ -166,7 +166,7 @@ word_counts %>%
 <img src="README_files/figure-markdown_github-ascii_identifiers/analysis_word_counts_graphed-1.svg" style="display: block; margin: auto;" />
 
 ``` r
-#TODO: figure out how is masking lubridate::wday
+#TODO: figure out who is masking lubridate::wday
 posts_by_day <- words %>%
     .[, .(timestamp = floor_date(timestamp, 'day'))] %>%
     .[, .(posts_in_day = .N), timestamp] %>%
