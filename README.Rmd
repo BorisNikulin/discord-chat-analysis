@@ -143,10 +143,19 @@ word_counts %>%
 ```
 
 ```{r analysis_weekly_chat_rate}
+#words_by_day <- words %>%
+    #.[, .(timestamp = floor_date(timestamp, 'day'))] %>%
+    #.[, .(words_in_day = .N), timestamp] %>%
+    #.[, .(timestamp, words_in_day, day_of_week = wday(timestamp, label = TRUE))]
+
 words_by_day <- words %>%
+	#.[, `:=`(username = NULL, word = NULL)] %T>% glimpse() %>%
 	.[, .(timestamp = floor_date(timestamp, 'day'))] %>%
+	.[, timestamp := floor_date(timestamp, 'day')]%>%
 	.[, .(words_in_day = .N), timestamp] %>%
-	.[, .(timestamp, words_in_day, day_of_week = wday(timestamp, label = TRUE))]
+	.[, day_of_week := wday(timestamp, label = TRUE)] %T>% glimpse()
+
+glimpse(words)
 
 plot <- ggplot(words_by_day, aes(timestamp, words_in_day)) +
 	geom_line() +
@@ -157,6 +166,25 @@ plot
 
 plot +
 	facet_grid(.~day_of_week) +
+	theme(axis.text.x = element_text(angle = 90, vjust = 0.5,  hjust = 1))
+```
+
+```{r analysis_weekly_chat_rate_per_user}
+words_by_day_per_user <- words %>%
+	.[, `:=`(word = NULL, timestamp = floor_date(timestamp, 'day'))] %>%
+	.[, .(words_in_day_per_user = .N), .(timestamp, username)] %>%
+	.[, day_of_week := wday(timestamp, label = TRUE)]
+
+plot <- ggplot(words_by_day_per_user, aes(timestamp, words_in_day_per_user, color = username)) +
+	geom_line() +
+	geom_smooth() +
+	labs(x = 'Day', y = 'Non Stop Word Count In Day', color = 'Username')
+
+plot +
+	facet_grid(username~.)
+
+plot +
+	facet_grid(username ~ day_of_week) +
 	theme(axis.text.x = element_text(angle = 90, vjust = 0.5,  hjust = 1))
 ```
 

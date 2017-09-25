@@ -166,11 +166,36 @@ word_counts %>%
 <img src="README_files/figure-markdown_github-ascii_identifiers/analysis_word_counts_graphed-1.svg" style="display: block; margin: auto;" />
 
 ``` r
-words_by_day <- words %>%
-    .[, .(timestamp = floor_date(timestamp, 'day'))] %>%
-    .[, .(words_in_day = .N), timestamp] %>%
-    .[, .(timestamp, words_in_day, day_of_week = wday(timestamp, label = TRUE))]
+#words_by_day <- words %>%
+    #.[, .(timestamp = floor_date(timestamp, 'day'))] %>%
+    #.[, .(words_in_day = .N), timestamp] %>%
+    #.[, .(timestamp, words_in_day, day_of_week = wday(timestamp, label = TRUE))]
 
+words_by_day <- words %>%
+    #.[, `:=`(username = NULL, word = NULL)] %T>% glimpse() %>%
+    .[, .(timestamp = floor_date(timestamp, 'day'))] %>%
+    .[, timestamp := floor_date(timestamp, 'day')]%>%
+    .[, .(words_in_day = .N), timestamp] %>%
+    .[, day_of_week := wday(timestamp, label = TRUE)] %T>% glimpse()
+```
+
+    ## Observations: 374
+    ## Variables: 3
+    ## $ timestamp    <dttm> 2017-09-12, 2017-09-11, 2017-09-10, 2017-09-09, ...
+    ## $ words_in_day <int> 769, 221, 122, 1075, 587, 869, 905, 671, 330, 104...
+    ## $ day_of_week  <ord> Tues, Mon, Sun, Sat, Fri, Thurs, Wed, Tues, Mon, ...
+
+``` r
+glimpse(words)
+```
+
+    ## Observations: 371,074
+    ## Variables: 3
+    ## $ timestamp <dttm> 2017-09-12 08:03:34, 2017-09-12 08:03:34, 2017-09-1...
+    ## $ username  <fctr> Benjamin, Benjamin, Benjamin, Benjamin, Benjamin, B...
+    ## $ word      <chr> "rate", "limits", "rate", "limiting", "goodbye", "pe...
+
+``` r
 plot <- ggplot(words_by_day, aes(timestamp, words_in_day)) +
     geom_line() +
     geom_smooth() +
@@ -188,6 +213,31 @@ plot +
 ```
 
 <img src="README_files/figure-markdown_github-ascii_identifiers/analysis_weekly_chat_rate-2.svg" style="display: block; margin: auto;" />
+
+``` r
+words_by_day_per_user <- words %>%
+    .[, `:=`(word = NULL, timestamp = floor_date(timestamp, 'day'))] %>%
+    .[, .(words_in_day_per_user = .N), .(timestamp, username)] %>%
+    .[, day_of_week := wday(timestamp, label = TRUE)]
+
+plot <- ggplot(words_by_day_per_user, aes(timestamp, words_in_day_per_user, color = username)) +
+    geom_line() +
+    geom_smooth() +
+    labs(x = 'Day', y = 'Non Stop Word Count In Day', color = 'Username')
+
+plot +
+    facet_grid(username~.)
+```
+
+<img src="README_files/figure-markdown_github-ascii_identifiers/analysis_weekly_chat_rate_per_user-1.svg" style="display: block; margin: auto;" />
+
+``` r
+plot +
+    facet_grid(username ~ day_of_week) +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5,  hjust = 1))
+```
+
+<img src="README_files/figure-markdown_github-ascii_identifiers/analysis_weekly_chat_rate_per_user-2.svg" style="display: block; margin: auto;" />
 
 ### Bigram Counts
 
