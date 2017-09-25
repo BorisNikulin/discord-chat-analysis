@@ -215,7 +215,7 @@ plot +
 <img src="README_files/figure-markdown_github-ascii_identifiers/analysis_weekly_chat_rate-2.svg" style="display: block; margin: auto;" />
 
 ``` r
-words_by_day_per_user <- words %>%
+words_by_day_per_user <- copy(words) %>%
     .[, `:=`(word = NULL, timestamp = floor_date(timestamp, 'day'))] %>%
     .[, .(words_in_day_per_user = .N), .(timestamp, username)] %>%
     .[, day_of_week := wday(timestamp, label = TRUE)]

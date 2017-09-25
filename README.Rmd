@@ -170,7 +170,7 @@ plot +
 ```
 
 ```{r analysis_weekly_chat_rate_per_user}
-words_by_day_per_user <- words %>%
+words_by_day_per_user <- copy(words) %>%
 	.[, `:=`(word = NULL, timestamp = floor_date(timestamp, 'day'))] %>%
 	.[, .(words_in_day_per_user = .N), .(timestamp, username)] %>%
 	.[, day_of_week := wday(timestamp, label = TRUE)]
