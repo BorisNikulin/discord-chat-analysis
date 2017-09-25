@@ -175,10 +175,10 @@ words_by_day_per_user <- words %>%
 	.[, .(words_in_day_per_user = .N), .(timestamp, username)] %>%
 	.[, day_of_week := wday(timestamp, label = TRUE)]
 
-plot <- ggplot(words_by_day_per_user, aes(timestamp, words_in_day_per_user, color = username)) +
+plot <- ggplot(words_by_day_per_user, aes(timestamp, words_in_day_per_user)) +
 	geom_line() +
 	geom_smooth() +
-	labs(x = 'Day', y = 'Non Stop Word Count In Day', color = 'Username')
+	labs(x = 'Day', y = 'Non Stop Word Count In Day')
 
 plot +
 	facet_grid(username~.)
