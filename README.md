@@ -166,16 +166,16 @@ word_counts %>%
 <img src="README_files/figure-markdown_github-ascii_identifiers/analysis_word_counts_graphed-1.svg" style="display: block; margin: auto;" />
 
 ``` r
-#TODO: figure out who is masking lubridate::wday
-posts_by_day <- words %>%
+#TODO: figure out who is masking lubridate::wday (it's data.table)
+words_by_day <- words %>%
     .[, .(timestamp = floor_date(timestamp, 'day'))] %>%
-    .[, .(posts_in_day = .N), timestamp] %>%
-    .[, .(timestamp, posts_in_day, day_of_week = lubridate::wday(timestamp, label = TRUE))]
+    .[, .(words_in_day = .N), timestamp] %>%
+    .[, .(timestamp, words_in_day, day_of_week = lubridate::wday(timestamp, label = TRUE))]
 
-plot <- ggplot(posts_by_day, aes(timestamp, posts_in_day)) +
+plot <- ggplot(words_by_day, aes(timestamp, words_in_day)) +
     geom_line() +
     geom_smooth() +
-    labs(x = 'Day', y = 'Post Count in Day')
+    labs(x = 'Day', y = 'Non Stop Word Count in Day')
 
 plot
 ```
