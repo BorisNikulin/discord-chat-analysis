@@ -29,8 +29,8 @@ This imports the json chat log as an R list. However, the list is not uniform in
 
 ``` r
 library(purrr)
+library(data.table) # masks some of lubridate's functions
 library(lubridate)
-library(data.table)
 library(dplyr)
 library(dtplyr)
 
@@ -166,11 +166,10 @@ word_counts %>%
 <img src="README_files/figure-markdown_github-ascii_identifiers/analysis_word_counts_graphed-1.svg" style="display: block; margin: auto;" />
 
 ``` r
-#TODO: figure out who is masking lubridate::wday (it's data.table)
 words_by_day <- words %>%
     .[, .(timestamp = floor_date(timestamp, 'day'))] %>%
     .[, .(words_in_day = .N), timestamp] %>%
-    .[, .(timestamp, words_in_day, day_of_week = lubridate::wday(timestamp, label = TRUE))]
+    .[, .(timestamp, words_in_day, day_of_week = wday(timestamp, label = TRUE))]
 
 plot <- ggplot(words_by_day, aes(timestamp, words_in_day)) +
     geom_line() +
