@@ -189,12 +189,18 @@ plot
 <img src="README_files/figure-markdown_github-ascii_identifiers/analysis_weekly_chat_rate-1.svg" style="display: block; margin: auto;" />
 
 ``` r
+theme_x_axis_text_45 <- theme(axis.text.x = element_text(angle = 45, vjust = 1.1,  hjust = 1.1))
+
 plot +
     facet_grid(.~day_of_week) +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5,  hjust = 1))
+    theme_x_axis_text_45
 ```
 
 <img src="README_files/figure-markdown_github-ascii_identifiers/analysis_weekly_chat_rate-2.svg" style="display: block; margin: auto;" />
+
+``` r
+    #theme(axis.text.x = element_text(angle = 90, vjust = 0.5,  hjust = 1))
+```
 
 ``` r
 words_by_day_per_user <- copy(words) %>%
@@ -216,10 +222,18 @@ plot +
 ``` r
 plot +
     facet_grid(username ~ day_of_week) +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5,  hjust = 1))
+    theme_x_axis_text_45
 ```
 
 <img src="README_files/figure-markdown_github-ascii_identifiers/analysis_weekly_chat_rate_per_user-2.svg" style="display: block; margin: auto;" />
+
+``` r
+    #theme(axis.text.x = element_text(angle = 45, vjust = 1.1,  hjust = 1.1))
+```
+
+``` r
+# words per hour (4 6h chunks or 6 4h chunks)
+```
 
 ### Bigram Counts
 
