@@ -151,7 +151,6 @@ word_counts %>%
 words_by_day <- words %>%
 	#.[, `:=`(username = NULL, word = NULL)] %T>% glimpse() %>%
 	.[, .(timestamp = floor_date(timestamp, 'day'))] %>%
-	.[, timestamp := floor_date(timestamp, 'day')]%>%
 	.[, .(words_in_day = .N), timestamp] %>%
 	.[, day_of_week := wday(timestamp, label = TRUE)]
 
@@ -191,7 +190,44 @@ plot +
 ```
 
 ```{r analysis_hourly_chat_rate}
-# words per hour (4 6h chunks or 6 4h chunks)
+#TODO: check timezone and consider making the 4 in 4 hours per chunk a variable
+words_by_hour <- words %>%
+	#.[, `:=`(username = NULL, word = NULL)] %T>% glimpse() %>%
+	.[, .(timestamp = floor_date(timestamp, '4 hours'))] %>%
+	.[, .(words_in_hour = .N), timestamp] %>%
+	.[, hours_chunk := hour(timestamp)]
+
+glimpse(words_by_hour)
+
+hour_chunk_labeller <- function(hours_in_chunk)
+{
+	function(facet_var)
+	{
+		paste(facet_var, as.numeric(facet_var) + hours_in_chunk, sep = '-')
+	}
+}
+
+ggplot(words_by_hour, aes(timestamp, words_in_hour)) +
+	geom_line() +
+	geom_smooth() +
+	facet_grid(.~hours_chunk, labeller = as_labeller(hour_chunk_labeller(4))) +
+	labs(x = 'Four Hour Segments', y = 'Non Stop Word Count In Four Hour Chunk') +
+	theme_x_axis_text_45
+
+words_by_hour_per_user <- copy(words) %>%
+	.[, `:=`(word = NULL, timestamp = floor_date(timestamp, '4 hours'))] %>%
+	.[, .(words_in_hour_per_user = .N), .(timestamp, username)] %>%
+	.[, hours_chunk := hour(timestamp)]
+
+glimpse(words_by_hour_per_user)
+
+ggplot(words_by_hour_per_user, aes(timestamp, words_in_hour_per_user)) +
+	geom_line() +
+	geom_smooth() +
+	facet_grid(username ~ hours_chunk,
+			   labeller = labeller(hours_chunk = as_labeller(hour_chunk_labeller(4)))) +
+	labs(x = 'Four Hour Segments', y = 'Non Stop Word Count In Four Hour Chunk') +
+	theme_x_axis_text_45
 ```
 
 ### Bigram Counts

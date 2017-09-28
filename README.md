@@ -174,7 +174,6 @@ word_counts %>%
 words_by_day <- words %>%
     #.[, `:=`(username = NULL, word = NULL)] %T>% glimpse() %>%
     .[, .(timestamp = floor_date(timestamp, 'day'))] %>%
-    .[, timestamp := floor_date(timestamp, 'day')]%>%
     .[, .(words_in_day = .N), timestamp] %>%
     .[, day_of_week := wday(timestamp, label = TRUE)]
 
@@ -232,8 +231,68 @@ plot +
 ```
 
 ``` r
-# words per hour (4 6h chunks or 6 4h chunks)
+#TODO: check timezone and consider making the 4 in 4 hours per chunk a variable
+words_by_hour <- words %>%
+    #.[, `:=`(username = NULL, word = NULL)] %T>% glimpse() %>%
+    .[, .(timestamp = floor_date(timestamp, '4 hours'))] %>%
+    .[, .(words_in_hour = .N), timestamp] %>%
+    .[, hours_chunk := hour(timestamp)]
+
+glimpse(words_by_hour)
 ```
+
+    ## Observations: 1,631
+    ## Variables: 3
+    ## $ timestamp     <dttm> 2017-09-12 08:00:00, 2017-09-12 04:00:00, 2017-...
+    ## $ words_in_hour <int> 9, 375, 385, 30, 46, 31, 114, 46, 16, 6, 54, 438...
+    ## $ hours_chunk   <int> 8, 4, 0, 20, 8, 4, 0, 20, 16, 12, 8, 20, 16, 12,...
+
+``` r
+hour_chunk_labeller <- function(hours_in_chunk)
+{
+    function(facet_var)
+    {
+        paste(facet_var, as.numeric(facet_var) + hours_in_chunk, sep = '-')
+    }
+}
+
+ggplot(words_by_hour, aes(timestamp, words_in_hour)) +
+    geom_line() +
+    geom_smooth() +
+    facet_grid(.~hours_chunk, labeller = as_labeller(hour_chunk_labeller(4))) +
+    labs(x = 'Four Hour Segments', y = 'Non Stop Word Count In Four Hour Chunk') +
+    theme_x_axis_text_45
+```
+
+<img src="README_files/figure-markdown_github-ascii_identifiers/analysis_hourly_chat_rate-1.svg" style="display: block; margin: auto;" />
+
+``` r
+words_by_hour_per_user <- copy(words) %>%
+    .[, `:=`(word = NULL, timestamp = floor_date(timestamp, '4 hours'))] %>%
+    .[, .(words_in_hour_per_user = .N), .(timestamp, username)] %>%
+    .[, hours_chunk := hour(timestamp)]
+
+glimpse(words_by_hour_per_user)
+```
+
+    ## Observations: 3,133
+    ## Variables: 4
+    ## $ timestamp              <dttm> 2017-09-12 08:00:00, 2017-09-12 04:00:...
+    ## $ username               <fctr> Benjamin, Wallace, Benjamin, Wallace, ...
+    ## $ words_in_hour_per_user <int> 9, 192, 183, 249, 37, 17, 79, 3, 12, 9,...
+    ## $ hours_chunk            <int> 8, 4, 4, 0, 0, 0, 0, 0, 20, 20, 20, 8, ...
+
+``` r
+ggplot(words_by_hour_per_user, aes(timestamp, words_in_hour_per_user)) +
+    geom_line() +
+    geom_smooth() +
+    facet_grid(username ~ hours_chunk,
+               labeller = labeller(hours_chunk = as_labeller(hour_chunk_labeller(4)))) +
+    labs(x = 'Four Hour Segments', y = 'Non Stop Word Count In Four Hour Chunk') +
+    theme_x_axis_text_45
+```
+
+<img src="README_files/figure-markdown_github-ascii_identifiers/analysis_hourly_chat_rate-2.svg" style="display: block; margin: auto;" />
 
 ### Bigram Counts
 
