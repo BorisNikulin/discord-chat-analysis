@@ -38,6 +38,8 @@ I extracted the relevant fields with
 [purrr](https://cran.r-project.org/web/packages/purrr/vignettes/other-langs.html) and then stitched it back together into a
 [data.table](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html).
 I then checked the result with [dplyr's](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html) glimpse.
+Note that time was converted to PST/PDT.
+All times shown will be with repsect to PST/PDT.
 
 ```{r import_data.table}
 library(purrr)
@@ -46,13 +48,16 @@ library(lubridate)
 library(dplyr)
 library(dtplyr)
 
-timestamps <- map(chat_json, ~.x$timestamp) %>% unlist() %>% ymd_hms()
-usernames <- map(chat_json, ~.x$author$username) %>% unlist() %>% as.factor()
-messages <- map(chat_json, ~.x$content) %>% unlist()
+chat <- data.table(
+	timestamp = map_chr(chat_json, 'timestamp') %>% ymd_hms(),
+	username = map_chr(chat_json, c('author', 'username')) %>% as.factor(),
+	message = map_chr(chat_json, 'content')
+	)
 
-chat <- data.table(timestamp = timestamps, username = usernames, message = messages)
+chat[, timestamp := with_tz(timestamp, tzone = 'US/Pacific')] # convert to PST (same time)
 
 glimpse(chat)
+chat[1, timestamp]
 ```
 ## Data Tidying
 
@@ -191,6 +196,7 @@ plot +
 
 ```{r analysis_hourly_chat_rate}
 #TODO: check timezone and consider making the 4 in 4 hours per chunk a variable
+chat[1, timestamp]
 words_by_hour <- words %>%
 	#.[, `:=`(username = NULL, word = NULL)] %T>% glimpse() %>%
 	.[, .(timestamp = floor_date(timestamp, '4 hours'))] %>%
@@ -198,6 +204,15 @@ words_by_hour <- words %>%
 	.[, hours_chunk := hour(timestamp)]
 
 glimpse(words_by_hour)
+
+words_by_hour[, head(.SD, 3), hours_chunk]
+words_by_hour[, .(.N), hours_chunk]
+copy(words)[, time := floor_date(timestamp, '4 hours')] %>%
+	.[, hours_chunk := hour(time)] %>%
+	.[hours_chunk == 1] %T>%
+	.[, timestamp]
+
+unique(tz(chat[, timestamp]))
 
 hour_chunk_labeller <- function(hours_in_chunk)
 {
