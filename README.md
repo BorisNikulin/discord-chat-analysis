@@ -203,7 +203,7 @@ word_counts %>%
     labs(x = 'Word', y = 'Word Count', fill = 'Username')
 ```
 
-<img src="README_files/figure-markdown_github-ascii_identifiers/analysis_word_counts_graphed-1.svg" style="display: block; margin: auto;" />
+![](README_files/figure-markdown_github-ascii_identifiers/analysis_word_counts_graphed-1.svg)
 
 ``` r
 #words_by_day <- words %>%
@@ -225,7 +225,7 @@ plot <- ggplot(words_by_day, aes(timestamp, words_in_day)) +
 plot
 ```
 
-<img src="README_files/figure-markdown_github-ascii_identifiers/analysis_weekly_chat_rate-1.svg" style="display: block; margin: auto;" />
+![](README_files/figure-markdown_github-ascii_identifiers/analysis_weekly_chat_rate-1.svg)
 
 ``` r
 theme_x_axis_text_45 <- theme(axis.text.x = element_text(angle = 45, vjust = 1.1,  hjust = 1.1))
@@ -235,7 +235,7 @@ plot +
     theme_x_axis_text_45
 ```
 
-<img src="README_files/figure-markdown_github-ascii_identifiers/analysis_weekly_chat_rate-2.svg" style="display: block; margin: auto;" />
+![](README_files/figure-markdown_github-ascii_identifiers/analysis_weekly_chat_rate-2.svg)
 
 ``` r
     #theme(axis.text.x = element_text(angle = 90, vjust = 0.5,  hjust = 1))
@@ -256,7 +256,7 @@ plot +
     facet_grid(username~.)
 ```
 
-<img src="README_files/figure-markdown_github-ascii_identifiers/analysis_weekly_chat_rate_per_user-1.svg" style="display: block; margin: auto;" />
+![](README_files/figure-markdown_github-ascii_identifiers/analysis_weekly_chat_rate_per_user-1.svg)
 
 ``` r
 plot +
@@ -264,7 +264,7 @@ plot +
     theme_x_axis_text_45
 ```
 
-<img src="README_files/figure-markdown_github-ascii_identifiers/analysis_weekly_chat_rate_per_user-2.svg" style="display: block; margin: auto;" />
+![](README_files/figure-markdown_github-ascii_identifiers/analysis_weekly_chat_rate_per_user-2.svg)
 
 ``` r
     #theme(axis.text.x = element_text(angle = 45, vjust = 1.1,  hjust = 1.1))
@@ -386,7 +386,7 @@ ggplot(words_by_hour, aes(timestamp, words_in_hour)) +
     theme_x_axis_text_45
 ```
 
-<img src="README_files/figure-markdown_github-ascii_identifiers/analysis_hourly_chat_rate-1.svg" style="display: block; margin: auto;" />
+![](README_files/figure-markdown_github-ascii_identifiers/analysis_hourly_chat_rate-1.svg)
 
 ``` r
 words_by_hour_per_user <- copy(words) %>%
@@ -414,7 +414,7 @@ ggplot(words_by_hour_per_user, aes(timestamp, words_in_hour_per_user)) +
     theme_x_axis_text_45
 ```
 
-<img src="README_files/figure-markdown_github-ascii_identifiers/analysis_hourly_chat_rate-2.svg" style="display: block; margin: auto;" />
+![](README_files/figure-markdown_github-ascii_identifiers/analysis_hourly_chat_rate-2.svg)
 
 ### Bigram Counts
 

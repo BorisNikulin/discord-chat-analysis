@@ -3,7 +3,7 @@ output: github_document
 ---
 
 ```{r global_options, include = F}
-knitr::opts_chunk$set(warning = F, message = F, dev = 'svg', fig.align = 'center')
+knitr::opts_chunk$set(warning = F, message = F, dev = 'svg')
 ```
 # Text Analysis of a Discord Chat Group
 
