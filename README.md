@@ -5,16 +5,27 @@ Text Analysis of a Discord Chat Group
 Thanks to the Editor
 --------------------
 
-A large thank you to [William Zhu](https://github.com/ZhuWilliam) for editing this poorly written document into something nice.
+A large thank you to [William Zhu](https://github.com/ZhuWilliam) for
+editing this poorly written document into something nice.
 
 Data Acquisition
 ----------------
 
-To get the data needed for analysis, there are two methods. First is the discord api's [Get Channel Message](https://discordapp.com/developers/docs/resources/channel#get-channel-messages) to manually retrieve the messages. The second, is to get a discord bot to do it for you. However, if you do not wish to setup a bot, you can use the first method to do bare api calls in python.
+To get the data needed for analysis, there are two methods. First is the
+discord api’s [Get Channel
+Message](https://discordapp.com/developers/docs/resources/channel#get-channel-messages)
+to manually retrieve the messages. The second, is to get a discord bot
+to do it for you. However, if you do not wish to setup a bot, you can
+use the first method to do bare api calls in python.
 
-Big thanks to [DiscordArchiver](https://github.com/Jiiks/DiscordArchiver/blob/master/DiscordArchiver/Program.cs#L15) for the undocumented (and probably old api that may be discontinued on October 16, 2017) url parameter for the token.
+Big thanks to
+[DiscordArchiver](https://github.com/Jiiks/DiscordArchiver/blob/master/DiscordArchiver/Program.cs#L15)
+for the undocumented (and probably old api that may be discontinued on
+October 16, 2017) url parameter for the token.
 
-After creating `discord_chat_dl.py` and running it with the token, the channel id, and the id of the last message, you can download all of the chat logs in a json format.
+After creating `discord_chat_dl.py` and running it with the token, the
+channel id, and the id of the last message, you can download all of the
+chat logs in a json format.
 
 Data Import
 -----------
@@ -25,7 +36,19 @@ library(jsonlite)
 chat_json <- read_json('discord_chat_anonymized.json')
 ```
 
-This imports the json chat log as an R list. However, the list is not uniform in fields across message entries as some messages have reactions, a feature introduced later in Discord's development that messages before the update do not have. This inconsistency prevents running the list into `data.table::rbindlist`, so I used an alternative method. I extracted the relevant fields with [purrr](https://cran.r-project.org/web/packages/purrr/vignettes/other-langs.html) and then stitched it back together into a [data.table](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html). I then checked the result with [dplyr's](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html) glimpse.
+This imports the json chat log as an R list. However, the list is not
+uniform in fields across message entries as some messages have
+reactions, a feature introduced later in Discord’s development that
+messages before the update do not have. This inconsistency prevents
+running the list into `data.table::rbindlist`, so I used an alternative
+method. I extracted the relevant fields with
+[purrr](https://cran.r-project.org/web/packages/purrr/vignettes/other-langs.html)
+and then stitched it back together into a
+[data.table](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html).
+I then checked the result with
+[dplyr’s](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html)
+glimpse. Note that time was converted to PST/PDT. All times shown will
+be with repsect to PST/PDT.
 
 ``` r
 library(purrr)
@@ -34,27 +57,36 @@ library(lubridate)
 library(dplyr)
 library(dtplyr)
 
-timestamps <- map(chat_json, ~.x$timestamp) %>% unlist() %>% ymd_hms()
-usernames <- map(chat_json, ~.x$author$username) %>% unlist() %>% as.factor()
-messages <- map(chat_json, ~.x$content) %>% unlist()
+chat <- data.table(
+    timestamp = map_chr(chat_json, 'timestamp') %>% ymd_hms(),
+    username = map_chr(chat_json, c('author', 'username')) %>% as.factor(),
+    message = map_chr(chat_json, 'content')
+    )
 
-chat <- data.table(timestamp = timestamps, username = usernames, message = messages)
+chat[, timestamp := with_tz(timestamp, tzone = 'US/Pacific')] # convert to PST (same time)
 
 glimpse(chat)
 ```
 
     ## Observations: 245,977
     ## Variables: 3
-    ## $ timestamp <dttm> 2017-09-12 08:03:34, 2017-09-12 08:03:17, 2017-09-1...
-    ## $ username  <fctr> Benjamin, Benjamin, Benjamin, Benjamin, Wallace, Be...
+    ## $ timestamp <dttm> 2017-09-12 01:03:34, 2017-09-12 01:03:17, 2017-09-1...
+    ## $ username  <fct> Benjamin, Benjamin, Benjamin, Benjamin, Wallace, Ben...
     ## $ message   <chr> "although the rate limits are probably the most *rat...
+
+``` r
+chat[1, timestamp]
+```
+
+    ## [1] "2017-09-12 01:03:34 PDT"
 
 Data Tidying
 ------------
 
 ### User and Message Tidying
 
-Some users did not post much so we filter them out. On top of filtering users, we remove URLs and long digits with regex.
+Some users did not post much so we filter them out. On top of filtering
+users, we remove URLs and long digits with regex.
 
 ``` r
 library(magrittr) # for %<>% (originator of %>%)
@@ -68,7 +100,12 @@ chat %<>%
 
 ### Word Tokenization
 
-To convert the `chat` data.table into a more convienient [tidy format](http://tidytextmining.com/tidytext.html), with one token per row, we can use [tidytext](https://cran.r-project.org/web/packages/tidytext/vignettes/tidytext.html). Common words can cause problems, but they can be removed with the help of tidytext's `stop_words`.
+To convert the `chat` data.table into a more convienient [tidy
+format](http://tidytextmining.com/tidytext.html), with one token per
+row, we can use
+[tidytext](https://cran.r-project.org/web/packages/tidytext/vignettes/tidytext.html).
+Common words can cause problems, but they can be removed with the help
+of tidytext’s `stop_words`.
 
 ``` r
 library(tidytext)
@@ -82,13 +119,16 @@ glimpse(words)
 
     ## Observations: 371,074
     ## Variables: 3
-    ## $ timestamp <dttm> 2017-09-12 08:03:34, 2017-09-12 08:03:34, 2017-09-1...
-    ## $ username  <fctr> Benjamin, Benjamin, Benjamin, Benjamin, Benjamin, B...
+    ## $ timestamp <dttm> 2017-09-12 01:03:34, 2017-09-12 01:03:34, 2017-09-1...
+    ## $ username  <fct> Benjamin, Benjamin, Benjamin, Benjamin, Benjamin, Be...
     ## $ word      <chr> "rate", "limits", "rate", "limiting", "goodbye", "pe...
 
 ### Bigram Tokenization
 
-Next, we prepare the tokenization of bigrams in much the same fashion as for words by using `unnest_tokens`, followed by [tidyr's](https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html) separate, and finally removing common words.
+Next, we prepare the tokenization of bigrams in much the same fashion as
+for words by using `unnest_tokens`, followed by
+[tidyr’s](https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html)
+separate, and finally removing common words.
 
 ``` r
 library(tidyr)
@@ -102,12 +142,12 @@ bigrams <- chat %>%
 glimpse(bigrams)
 ```
 
-    ## Observations: 105,642
+    ## Observations: 196,469
     ## Variables: 4
-    ## $ timestamp <dttm> 2017-09-12 08:03:34, 2017-09-12 08:03:34, 2017-09-1...
-    ## $ username  <fctr> Benjamin, Benjamin, Benjamin, Benjamin, Benjamin, W...
-    ## $ word1     <chr> "rate", "rate", "ive", "total", "14gb", "python", "d...
-    ## $ word2     <chr> "limits", "limiting", "reached", "ram", "15.6gb", "d...
+    ## $ timestamp <dttm> 2017-09-12 01:03:34, 2017-09-12 01:03:34, 2017-09-1...
+    ## $ username  <fct> Benjamin, Benjamin, Benjamin, NA, Benjamin, Benjamin...
+    ## $ word1     <chr> "rate", "rate", "ive", NA, "total", "14gb", NA, "pyt...
+    ## $ word2     <chr> "limits", "limiting", "reached", NA, "ram", "15.6gb"...
 
 Data Analysis
 -------------
@@ -232,6 +272,12 @@ plot +
 
 ``` r
 #TODO: check timezone and consider making the 4 in 4 hours per chunk a variable
+chat[1, timestamp]
+```
+
+    ## [1] "2017-09-12 01:03:34 PDT"
+
+``` r
 words_by_hour <- words %>%
     #.[, `:=`(username = NULL, word = NULL)] %T>% glimpse() %>%
     .[, .(timestamp = floor_date(timestamp, '4 hours'))] %>%
@@ -243,9 +289,85 @@ glimpse(words_by_hour)
 
     ## Observations: 1,631
     ## Variables: 3
-    ## $ timestamp     <dttm> 2017-09-12 08:00:00, 2017-09-12 04:00:00, 2017-...
-    ## $ words_in_hour <int> 9, 375, 385, 30, 46, 31, 114, 46, 16, 6, 54, 438...
-    ## $ hours_chunk   <int> 8, 4, 0, 20, 8, 4, 0, 20, 16, 12, 8, 20, 16, 12,...
+    ## $ timestamp     <dttm> 2017-09-12 00:00:00, 2017-09-11 20:00:00, 2017-...
+    ## $ words_in_hour <int> 103, 387, 279, 30, 28, 18, 42, 103, 62, 13, 47, ...
+    ## $ hours_chunk   <int> 0, 20, 16, 12, 4, 0, 20, 16, 12, 4, 0, 16, 12, 8...
+
+``` r
+words_by_hour[, head(.SD, 3), hours_chunk]
+```
+
+    ##     hours_chunk           timestamp words_in_hour
+    ##  1:           0 2017-09-12 00:00:00           103
+    ##  2:           0 2017-09-11 00:00:00            18
+    ##  3:           0 2017-09-10 00:00:00            47
+    ##  4:          20 2017-09-11 20:00:00           387
+    ##  5:          20 2017-09-10 20:00:00            42
+    ##  6:          20 2017-09-08 20:00:00            32
+    ##  7:          16 2017-09-11 16:00:00           279
+    ##  8:          16 2017-09-10 16:00:00           103
+    ##  9:          16 2017-09-09 16:00:00            34
+    ## 10:          12 2017-09-11 12:00:00            30
+    ## 11:          12 2017-09-10 12:00:00            62
+    ## 12:          12 2017-09-09 12:00:00           404
+    ## 13:           4 2017-09-11 04:00:00            28
+    ## 14:           4 2017-09-10 04:00:00            13
+    ## 15:           4 2017-09-09 04:00:00            38
+    ## 16:           8 2017-09-09 08:00:00           405
+    ## 17:           8 2017-09-07 08:00:00           300
+    ## 18:           8 2017-09-06 08:00:00            41
+    ## 19:           1 2016-11-06 01:00:00           148
+
+``` r
+words_by_hour[, .(.N), hours_chunk]
+```
+
+    ##    hours_chunk   N
+    ## 1:           0 298
+    ## 2:          20 334
+    ## 3:          16 319
+    ## 4:          12 268
+    ## 5:           4 207
+    ## 6:           8 204
+    ## 7:           1   1
+
+``` r
+copy(words)[, time := floor_date(timestamp, '4 hours')] %>%
+    .[, hours_chunk := hour(time)] %>%
+    .[hours_chunk == 1] %T>%
+    .[, timestamp]
+```
+
+    ##                timestamp username      word                time
+    ##   1: 2016-11-06 03:56:55 Benjamin        ic 2016-11-06 01:00:00
+    ##   2: 2016-11-06 03:56:43 Benjamin       wtf 2016-11-06 01:00:00
+    ##   3: 2016-11-06 03:56:41 Benjamin     magic 2016-11-06 01:00:00
+    ##   4: 2016-11-06 03:56:41 Benjamin      mode 2016-11-06 01:00:00
+    ##   5: 2016-11-06 03:56:39 Benjamin       esc 2016-11-06 01:00:00
+    ##  ---                                                           
+    ## 144: 2016-11-06 01:36:45 Benjamin customers 2016-11-06 01:00:00
+    ## 145: 2016-11-06 01:36:45 Benjamin returning 2016-11-06 01:00:00
+    ## 146: 2016-11-06 01:36:45 Benjamin remaining 2016-11-06 01:00:00
+    ## 147: 2016-11-06 01:36:45 Benjamin  software 2016-11-06 01:00:00
+    ## 148: 2016-11-06 01:36:45 Benjamin    update 2016-11-06 01:00:00
+    ##      hours_chunk
+    ##   1:           1
+    ##   2:           1
+    ##   3:           1
+    ##   4:           1
+    ##   5:           1
+    ##  ---            
+    ## 144:           1
+    ## 145:           1
+    ## 146:           1
+    ## 147:           1
+    ## 148:           1
+
+``` r
+unique(tz(chat[, timestamp]))
+```
+
+    ## [1] "US/Pacific"
 
 ``` r
 hour_chunk_labeller <- function(hours_in_chunk)
@@ -275,12 +397,12 @@ words_by_hour_per_user <- copy(words) %>%
 glimpse(words_by_hour_per_user)
 ```
 
-    ## Observations: 3,133
+    ## Observations: 3,152
     ## Variables: 4
-    ## $ timestamp              <dttm> 2017-09-12 08:00:00, 2017-09-12 04:00:...
-    ## $ username               <fctr> Benjamin, Wallace, Benjamin, Wallace, ...
-    ## $ words_in_hour_per_user <int> 9, 192, 183, 249, 37, 17, 79, 3, 12, 9,...
-    ## $ hours_chunk            <int> 8, 4, 4, 0, 0, 0, 0, 0, 20, 20, 20, 8, ...
+    ## $ timestamp              <dttm> 2017-09-12 00:00:00, 2017-09-12 00:00:...
+    ## $ username               <fct> Benjamin, Wallace, Benjamin, Wallace, M...
+    ## $ words_in_hour_per_user <int> 97, 6, 113, 259, 15, 176, 79, 19, 2, 3,...
+    ## $ hours_chunk            <int> 0, 0, 20, 20, 20, 16, 16, 16, 16, 16, 1...
 
 ``` r
 ggplot(words_by_hour_per_user, aes(timestamp, words_in_hour_per_user)) +
@@ -304,19 +426,20 @@ bigram_counts <- bigrams %>%
 bigram_counts[, head(.SD, 3), username]
 ```
 
-    ##     username    word1       word2   N
-    ##  1:  Wallace     holy        shit 331
-    ##  2:  Wallace       im       gonna 131
-    ##  3:  Wallace        2           3  80
-    ##  4: Benjamin      1st          qu  96
-    ##  5: Benjamin      3rd          qu  96
-    ##  6: Benjamin      min         1st  93
-    ##  7:  Michael     page       table  37
-    ##  8:  Michael        0           0  19
-    ##  9:  Michael    gonna        head  16
-    ## 10:    Molly   dragon         age   6
-    ## 11:    Molly      web programming   4
-    ## 12:    Molly personal     project   4
-    ## 13:    Peter       11          10   3
-    ## 14:    Peter        2           3   3
-    ## 15:    Peter      red      weapon   3
+    ##     username    word1       word2     N
+    ##  1:     <NA>     <NA>        <NA> 90827
+    ##  2:  Wallace     holy        shit   331
+    ##  3:  Wallace       im       gonna   131
+    ##  4:  Wallace        2           3    80
+    ##  5: Benjamin      1st          qu    96
+    ##  6: Benjamin      3rd          qu    96
+    ##  7: Benjamin      min         1st    93
+    ##  8:  Michael     page       table    37
+    ##  9:  Michael        0           0    19
+    ## 10:  Michael    gonna        head    16
+    ## 11:    Molly   dragon         age     6
+    ## 12:    Molly      web programming     4
+    ## 13:    Molly personal     project     4
+    ## 14:    Peter       11          10     3
+    ## 15:    Peter        2           3     3
+    ## 16:    Peter      red      weapon     3
