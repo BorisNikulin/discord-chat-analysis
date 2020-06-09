@@ -1,15 +1,12 @@
 
-Text Analysis of a Discord Chat Group
-=====================================
+# Text Analysis of a Discord Chat Group
 
-Thanks to the Editor
---------------------
+## Thanks to the Editor
 
 A large thank you to [William Zhu](https://github.com/ZhuWilliam) for
 editing this poorly written document into something nice.
 
-Data Acquisition
-----------------
+## Data Acquisition
 
 To get the data needed for analysis, there are two methods. First is the
 discord api’s [Get Channel
@@ -27,8 +24,7 @@ After creating `discord_chat_dl.py` and running it with the token, the
 channel id, and the id of the last message, you can download all of the
 chat logs in a json format.
 
-Data Import
------------
+## Data Import
 
 ``` r
 library(jsonlite)
@@ -68,11 +64,11 @@ chat[, timestamp := with_tz(timestamp, tzone = 'US/Pacific')] # convert to PST (
 glimpse(chat)
 ```
 
-    ## Observations: 245,977
-    ## Variables: 3
-    ## $ timestamp <dttm> 2017-09-12 01:03:34, 2017-09-12 01:03:17, 2017-09-1...
-    ## $ username  <fct> Benjamin, Benjamin, Benjamin, Benjamin, Wallace, Ben...
-    ## $ message   <chr> "although the rate limits are probably the most *rat...
+    ## Rows: 245,977
+    ## Columns: 3
+    ## $ timestamp <dttm> 2017-09-12 01:03:34, 2017-09-12 01:03:17, 2017-09-12 01:03…
+    ## $ username  <fct> Benjamin, Benjamin, Benjamin, Benjamin, Wallace, Benjamin, …
+    ## $ message   <chr> "although the rate limits are probably the most *rate* limi…
 
 ``` r
 chat[1, timestamp]
@@ -80,8 +76,7 @@ chat[1, timestamp]
 
     ## [1] "2017-09-12 01:03:34 PDT"
 
-Data Tidying
-------------
+## Data Tidying
 
 ### User and Message Tidying
 
@@ -117,11 +112,11 @@ words <- chat %>%
 glimpse(words)
 ```
 
-    ## Observations: 371,074
-    ## Variables: 3
-    ## $ timestamp <dttm> 2017-09-12 01:03:34, 2017-09-12 01:03:34, 2017-09-1...
-    ## $ username  <fct> Benjamin, Benjamin, Benjamin, Benjamin, Benjamin, Be...
-    ## $ word      <chr> "rate", "limits", "rate", "limiting", "goodbye", "pe...
+    ## Rows: 371,075
+    ## Columns: 3
+    ## $ timestamp <dttm> 2017-09-12 01:03:34, 2017-09-12 01:03:34, 2017-09-12 01:03…
+    ## $ username  <fct> Benjamin, Benjamin, Benjamin, Benjamin, Benjamin, Benjamin,…
+    ## $ word      <chr> "rate", "limits", "rate", "limiting", "goodbye", "performan…
 
 ### Bigram Tokenization
 
@@ -142,15 +137,14 @@ bigrams <- chat %>%
 glimpse(bigrams)
 ```
 
-    ## Observations: 196,469
-    ## Variables: 4
-    ## $ timestamp <dttm> 2017-09-12 01:03:34, 2017-09-12 01:03:34, 2017-09-1...
-    ## $ username  <fct> Benjamin, Benjamin, Benjamin, NA, Benjamin, Benjamin...
-    ## $ word1     <chr> "rate", "rate", "ive", NA, "total", "14gb", NA, "pyt...
-    ## $ word2     <chr> "limits", "limiting", "reached", NA, "ram", "15.6gb"...
+    ## Rows: 196,469
+    ## Columns: 4
+    ## $ timestamp <dttm> 2016-09-02 20:22:36, 2016-09-02 20:22:38, 2016-09-02 20:28…
+    ## $ username  <fct> Benjamin, Benjamin, Wallace, Benjamin, Benjamin, Benjamin, …
+    ## $ word1     <chr> NA, NA, NA, NA, "wont", "reacive", "instant", NA, NA, NA, N…
+    ## $ word2     <chr> NA, NA, NA, NA, "reacive", "instant", "messages", NA, NA, N…
 
-Data Analysis
--------------
+## Data Analysis
 
 ### Word Counts
 
@@ -203,7 +197,7 @@ word_counts %>%
     labs(x = 'Word', y = 'Word Count', fill = 'Username')
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/analysis_word_counts_graphed-1.png)
+![](README_files/figure-gfm/analysis_word_counts_graphed-1.png)<!-- -->
 
 ``` r
 #words_by_day <- words %>%
@@ -225,7 +219,7 @@ plot <- ggplot(words_by_day, aes(timestamp, words_in_day)) +
 plot
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/analysis_weekly_chat_rate-1.png)
+![](README_files/figure-gfm/analysis_weekly_chat_rate-1.png)<!-- -->
 
 ``` r
 theme_x_axis_text_45 <- theme(axis.text.x = element_text(angle = 45, vjust = 1.1,  hjust = 1.1))
@@ -235,7 +229,7 @@ plot +
     theme_x_axis_text_45
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/analysis_weekly_chat_rate-2.png)
+![](README_files/figure-gfm/analysis_weekly_chat_rate-2.png)<!-- -->
 
 ``` r
     #theme(axis.text.x = element_text(angle = 90, vjust = 0.5,  hjust = 1))
@@ -256,7 +250,7 @@ plot +
     facet_grid(username~.)
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/analysis_weekly_chat_rate_per_user-1.png)
+![](README_files/figure-gfm/analysis_weekly_chat_rate_per_user-1.png)<!-- -->
 
 ``` r
 plot +
@@ -264,7 +258,7 @@ plot +
     theme_x_axis_text_45
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/analysis_weekly_chat_rate_per_user-2.png)
+![](README_files/figure-gfm/analysis_weekly_chat_rate_per_user-2.png)<!-- -->
 
 ``` r
     #theme(axis.text.x = element_text(angle = 45, vjust = 1.1,  hjust = 1.1))
@@ -287,11 +281,11 @@ words_by_hour <- words %>%
 glimpse(words_by_hour)
 ```
 
-    ## Observations: 1,631
-    ## Variables: 3
-    ## $ timestamp     <dttm> 2017-09-12 00:00:00, 2017-09-11 20:00:00, 2017-...
-    ## $ words_in_hour <int> 103, 387, 279, 30, 28, 18, 42, 103, 62, 13, 47, ...
-    ## $ hours_chunk   <int> 0, 20, 16, 12, 4, 0, 20, 16, 12, 4, 0, 16, 12, 8...
+    ## Rows: 1,631
+    ## Columns: 3
+    ## $ timestamp     <dttm> 2017-09-12 00:00:00, 2017-09-11 20:00:00, 2017-09-11 1…
+    ## $ words_in_hour <int> 103, 387, 279, 30, 28, 18, 42, 103, 62, 13, 47, 34, 404…
+    ## $ hours_chunk   <int> 0, 20, 16, 12, 4, 0, 20, 16, 12, 4, 0, 16, 12, 8, 4, 0,…
 
 ``` r
 words_by_hour[, head(.SD, 3), hours_chunk]
@@ -338,30 +332,18 @@ copy(words)[, time := floor_date(timestamp, '4 hours')] %>%
     .[, timestamp]
 ```
 
-    ##                timestamp username      word                time
-    ##   1: 2016-11-06 03:56:55 Benjamin        ic 2016-11-06 01:00:00
-    ##   2: 2016-11-06 03:56:43 Benjamin       wtf 2016-11-06 01:00:00
-    ##   3: 2016-11-06 03:56:41 Benjamin     magic 2016-11-06 01:00:00
-    ##   4: 2016-11-06 03:56:41 Benjamin      mode 2016-11-06 01:00:00
-    ##   5: 2016-11-06 03:56:39 Benjamin       esc 2016-11-06 01:00:00
-    ##  ---                                                           
-    ## 144: 2016-11-06 01:36:45 Benjamin customers 2016-11-06 01:00:00
-    ## 145: 2016-11-06 01:36:45 Benjamin returning 2016-11-06 01:00:00
-    ## 146: 2016-11-06 01:36:45 Benjamin remaining 2016-11-06 01:00:00
-    ## 147: 2016-11-06 01:36:45 Benjamin  software 2016-11-06 01:00:00
-    ## 148: 2016-11-06 01:36:45 Benjamin    update 2016-11-06 01:00:00
-    ##      hours_chunk
-    ##   1:           1
-    ##   2:           1
-    ##   3:           1
-    ##   4:           1
-    ##   5:           1
-    ##  ---            
-    ## 144:           1
-    ## 145:           1
-    ## 146:           1
-    ## 147:           1
-    ## 148:           1
+    ##                timestamp username      word                time hours_chunk
+    ##   1: 2016-11-06 03:56:55 Benjamin        ic 2016-11-06 01:00:00           1
+    ##   2: 2016-11-06 03:56:43 Benjamin       wtf 2016-11-06 01:00:00           1
+    ##   3: 2016-11-06 03:56:41 Benjamin     magic 2016-11-06 01:00:00           1
+    ##   4: 2016-11-06 03:56:41 Benjamin      mode 2016-11-06 01:00:00           1
+    ##   5: 2016-11-06 03:56:39 Benjamin       esc 2016-11-06 01:00:00           1
+    ##  ---                                                                       
+    ## 144: 2016-11-06 01:36:45 Benjamin customers 2016-11-06 01:00:00           1
+    ## 145: 2016-11-06 01:36:45 Benjamin returning 2016-11-06 01:00:00           1
+    ## 146: 2016-11-06 01:36:45 Benjamin remaining 2016-11-06 01:00:00           1
+    ## 147: 2016-11-06 01:36:45 Benjamin  software 2016-11-06 01:00:00           1
+    ## 148: 2016-11-06 01:36:45 Benjamin    update 2016-11-06 01:00:00           1
 
 ``` r
 unique(tz(chat[, timestamp]))
@@ -386,7 +368,7 @@ ggplot(words_by_hour, aes(timestamp, words_in_hour)) +
     theme_x_axis_text_45
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/analysis_hourly_chat_rate-1.png)
+![](README_files/figure-gfm/analysis_hourly_chat_rate-1.png)<!-- -->
 
 ``` r
 words_by_hour_per_user <- copy(words) %>%
@@ -397,12 +379,12 @@ words_by_hour_per_user <- copy(words) %>%
 glimpse(words_by_hour_per_user)
 ```
 
-    ## Observations: 3,152
-    ## Variables: 4
-    ## $ timestamp              <dttm> 2017-09-12 00:00:00, 2017-09-12 00:00:...
-    ## $ username               <fct> Benjamin, Wallace, Benjamin, Wallace, M...
-    ## $ words_in_hour_per_user <int> 97, 6, 113, 259, 15, 176, 79, 19, 2, 3,...
-    ## $ hours_chunk            <int> 0, 0, 20, 20, 20, 16, 16, 16, 16, 16, 1...
+    ## Rows: 3,152
+    ## Columns: 4
+    ## $ timestamp              <dttm> 2017-09-12 00:00:00, 2017-09-12 00:00:00, 201…
+    ## $ username               <fct> Benjamin, Wallace, Benjamin, Wallace, Michael,…
+    ## $ words_in_hour_per_user <int> 97, 6, 113, 259, 15, 176, 79, 19, 2, 3, 12, 9,…
+    ## $ hours_chunk            <int> 0, 0, 20, 20, 20, 16, 16, 16, 16, 16, 12, 12, …
 
 ``` r
 ggplot(words_by_hour_per_user, aes(timestamp, words_in_hour_per_user)) +
@@ -414,7 +396,7 @@ ggplot(words_by_hour_per_user, aes(timestamp, words_in_hour_per_user)) +
     theme_x_axis_text_45
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/analysis_hourly_chat_rate-2.png)
+![](README_files/figure-gfm/analysis_hourly_chat_rate-2.png)<!-- -->
 
 ### Bigram Counts
 
@@ -426,20 +408,19 @@ bigram_counts <- bigrams %>%
 bigram_counts[, head(.SD, 3), username]
 ```
 
-    ##     username    word1       word2     N
-    ##  1:     <NA>     <NA>        <NA> 90827
-    ##  2:  Wallace     holy        shit   331
-    ##  3:  Wallace       im       gonna   131
-    ##  4:  Wallace        2           3    80
-    ##  5: Benjamin      1st          qu    96
-    ##  6: Benjamin      3rd          qu    96
-    ##  7: Benjamin      min         1st    93
-    ##  8:  Michael     page       table    37
-    ##  9:  Michael        0           0    19
-    ## 10:  Michael    gonna        head    16
-    ## 11:    Molly   dragon         age     6
-    ## 12:    Molly      web programming     4
-    ## 13:    Molly personal     project     4
-    ## 14:    Peter       11          10     3
-    ## 15:    Peter        2           3     3
-    ## 16:    Peter      red      weapon     3
+    ##     username  word1  word2     N
+    ##  1: Benjamin   <NA>   <NA> 56320
+    ##  2: Benjamin    1st     qu    96
+    ##  3: Benjamin    3rd     qu    96
+    ##  4:  Wallace   <NA>   <NA> 28086
+    ##  5:  Wallace   holy   shit   331
+    ##  6:  Wallace     im  gonna   131
+    ##  7:  Michael   <NA>   <NA>  5275
+    ##  8:  Michael   page  table    37
+    ##  9:  Michael      0      0    19
+    ## 10:    Molly   <NA>   <NA>   961
+    ## 11:    Molly dragon    age     6
+    ## 12:    Molly   dark  souls     4
+    ## 13:    Peter   <NA>   <NA>   185
+    ## 14:    Peter     11     10     3
+    ## 15:    Peter    red weapon     3
