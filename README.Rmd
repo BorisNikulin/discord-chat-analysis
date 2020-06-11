@@ -254,3 +254,39 @@ bigram_counts <- bigrams %>%
 
 bigram_counts[, head(.SD, 3), username]
 ```
+
+### Characteristic Words
+
+To answer the question of what words are characteristic of document among a corpus
+we can use tf-idf.
+In our case,
+we consider the corpus to be all of the text in the logs
+and each user's text as a document.
+Now we can ask the question of what words differentiate each user.
+
+tf-idf is a masuere that penalizes frequest words across documents, users in our case, (idf)
+and rewards frequent words within a document, a user's text, (tf).
+idf is the inverse document frequency which is low for words common in all documents
+and tf is the term frequency or the relative frequency of a word within a document
+which is high for common words within a document.
+When the term frequency is multiplied with the inverse document frequency,
+we get tf-idf which allows us to see the most common words of a user that are less common among all users
+to see which words characterize users.
+
+```{r analysis_tf_idf}
+word_tf_idf <- word_counts %>%
+	bind_tf_idf(word, username, N) %>%
+	setorder(-tf_idf)
+
+word_tf_idf[, head(.SD, 2), username]
+
+# order within factors is wack but is correct as top tf-idf per user
+word_tf_idf %>%
+	.[, head(.SD, 6), username] %>%
+	.[, word := factor(word, levels = rev(unique(word)))] %>%
+	ggplot(aes(word, tf_idf)) +
+	geom_col() +
+	facet_wrap(~username, ncol = 2, scales = 'free') +
+	coord_flip() +
+	labs(title = 'Most Charateristics Words per User', x = NULL, y = 'tf-idf')
+```

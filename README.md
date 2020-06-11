@@ -424,3 +424,54 @@ bigram_counts[, head(.SD, 3), username]
     ## 13:    Peter   <NA>   <NA>   185
     ## 14:    Peter     11     10     3
     ## 15:    Peter    red weapon     3
+
+### Characteristic Words
+
+To answer the question of what words are characteristic of document
+among a corpus we can use tf-idf. In our case, we consider the corpus to
+be all of the text in the logs and each user’s text as a document. Now
+we can ask the question of what words differentiate each user.
+
+tf-idf is a masuere that penalizes frequest words across documents,
+users in our case, (idf) and rewards frequent words within a document, a
+user’s text, (tf). idf is the inverse document frequency which is low
+for words common in all documents and tf is the term frequency or the
+relative frequency of a word within a document which is high for common
+words within a document. When the term frequency is multiplied with the
+inverse document frequency, we get tf-idf which allows us to see the
+most common words of a user that are less common among all users to see
+which words characterize users.
+
+``` r
+word_tf_idf <- word_counts %>%
+    bind_tf_idf(word, username, N) %>%
+    setorder(-tf_idf)
+
+word_tf_idf[, head(.SD, 2), username]
+```
+
+    ##     username     word    N          tf       idf      tf_idf
+    ##  1:  Michael    shizz  193 0.006500724 1.6094379 0.010462512
+    ##  2:  Michael     file   87 0.002930378 0.5108256 0.001496912
+    ##  3:  Wallace       im 2005 0.012661185 0.5108256 0.006467658
+    ##  4:  Wallace     dont 1515 0.009566931 0.5108256 0.004887033
+    ##  5: Benjamin       im 1378 0.007820925 0.5108256 0.003995129
+    ##  6: Benjamin     dont 1311 0.007440662 0.5108256 0.003800881
+    ##  7:    Peter     sael    6 0.003462204 0.9162907 0.003172386
+    ##  8:    Peter  banshee    3 0.001731102 1.6094379 0.002786101
+    ##  9:    Molly chaotica    8 0.001568320 1.6094379 0.002524114
+    ## 10:    Molly     xaos    6 0.001176240 1.6094379 0.001893085
+
+``` r
+# order within factors is wack but is correct as top tf-idf per user
+word_tf_idf %>%
+    .[, head(.SD, 6), username] %>%
+    .[, word := factor(word, levels = rev(unique(word)))] %>%
+    ggplot(aes(word, tf_idf)) +
+    geom_col() +
+    facet_wrap(~username, ncol = 2, scales = 'free') +
+    coord_flip() +
+    labs(title = 'Most Charateristics Words per User', x = NULL, y = 'tf-idf')
+```
+
+![](README_files/figure-gfm/analysis_tf_idf-1.png)<!-- -->
