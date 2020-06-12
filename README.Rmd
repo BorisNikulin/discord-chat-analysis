@@ -303,6 +303,10 @@ word_tf_idf %>%
 
 ### Word Relationships
 
+One way to see relationships between words is to consider consequitve words or n-grams.
+Here were consider bigrams or pairs of consequitve words.
+Plotting the network of bigrams allows us to see a Markov chain like structure
+of the words said.
 
 ```{r analysis_relationship_bigram}
 library(igraph)

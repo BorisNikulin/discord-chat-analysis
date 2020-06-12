@@ -499,6 +499,11 @@ word_tf_idf %>%
 
 ### Word Relationships
 
+One way to see relationships between words is to consider consequitve
+words or n-grams. Here were consider bigrams or pairs of consequitve
+words. Plotting the network of bigrams allows us to see a Markov chain
+like structure of the words said.
+
 ``` r
 library(igraph)
 library(ggraph)
@@ -549,9 +554,9 @@ bigram_counts_per_user %>%
     ## $ word2    <chr> "shit", "gonna", "3", "2", "qu", "qu", "1st", "median", "tab…
     ## $ username <fct> Wallace, Wallace, Wallace, Wallace, Benjamin, Benjamin, Benj…
     ## $ N        <int> 331, 131, 80, 78, 96, 96, 93, 93, 37, 19, 16, 16, 6, 4, 4, 4…
-    ## IGRAPH 45787c6 DN-- 32 20 -- 
+    ## IGRAPH 007a650 DN-- 32 20 -- 
     ## + attr: name (v/c), username (e/c), N (e/n)
-    ## + edges from 45787c6 (vertex names):
+    ## + edges from 007a650 (vertex names):
     ##  [1] holy      ->shit   im        ->gonna  2         ->3      1         ->2     
     ##  [5] 1st       ->qu     3rd       ->qu     min       ->1st    qu        ->median
     ##  [9] page      ->table  0         ->0      gonna     ->head   polynomial->time  
