@@ -199,6 +199,10 @@ word_counts %>%
 
 ![](README_files/figure-gfm/analysis_word_counts_graphed-1.png)<!-- -->
 
+<details>
+
+<summary> WIP: Time Bases Analysis </summary>
+
 ``` r
 #words_by_day <- words %>%
     #.[, .(timestamp = floor_date(timestamp, 'day'))] %>%
@@ -398,32 +402,49 @@ ggplot(words_by_hour_per_user, aes(timestamp, words_in_hour_per_user)) +
 
 ![](README_files/figure-gfm/analysis_hourly_chat_rate-2.png)<!-- -->
 
+</details>
+
 ### Bigram Counts
 
 ``` r
-bigram_counts <- bigrams %>%
+bigram_counts_per_user <- bigrams %>%
+    na.omit() %>%
     .[, .N, .(username, word1, word2)] %>%
     setorder(-N)
 
-bigram_counts[, head(.SD, 3), username]
+bigram_counts <- bigram_counts_per_user %>%
+    .[, .(N = sum(N)), .(word1, word2)]
+
+head(bigram_counts, 5)
 ```
 
-    ##     username  word1  word2     N
-    ##  1: Benjamin   <NA>   <NA> 56320
-    ##  2: Benjamin    1st     qu    96
-    ##  3: Benjamin    3rd     qu    96
-    ##  4:  Wallace   <NA>   <NA> 28086
-    ##  5:  Wallace   holy   shit   331
-    ##  6:  Wallace     im  gonna   131
-    ##  7:  Michael   <NA>   <NA>  5275
-    ##  8:  Michael   page  table    37
-    ##  9:  Michael      0      0    19
-    ## 10:    Molly   <NA>   <NA>   961
-    ## 11:    Molly dragon    age     6
-    ## 12:    Molly   dark  souls     4
-    ## 13:    Peter   <NA>   <NA>   185
-    ## 14:    Peter     11     10     3
-    ## 15:    Peter    red weapon     3
+    ##    word1 word2   N
+    ## 1:  holy  shit 333
+    ## 2:    im gonna 138
+    ## 3:   1st    qu  96
+    ## 4:   3rd    qu  96
+    ## 5:   min   1st  93
+
+``` r
+bigram_counts_per_user[, head(.SD, 3), username]
+```
+
+    ##     username  word1  word2   N
+    ##  1:  Wallace   holy   shit 331
+    ##  2:  Wallace     im  gonna 131
+    ##  3:  Wallace      2      3  80
+    ##  4: Benjamin    1st     qu  96
+    ##  5: Benjamin    3rd     qu  96
+    ##  6: Benjamin    min    1st  93
+    ##  7:  Michael   page  table  37
+    ##  8:  Michael      0      0  19
+    ##  9:  Michael  gonna   head  16
+    ## 10:    Molly dragon    age   6
+    ## 11:    Molly   dark  souls   4
+    ## 12:    Molly  amish people   4
+    ## 13:    Peter     11     10   3
+    ## 14:    Peter    red weapon   3
+    ## 15:    Peter      2      3   3
 
 ### Characteristic Words
 
@@ -475,3 +496,66 @@ word_tf_idf %>%
 ```
 
 ![](README_files/figure-gfm/analysis_tf_idf-1.png)<!-- -->
+
+### Word Relationships
+
+``` r
+library(igraph)
+library(ggraph)
+
+set.seed(23)
+bigram_counts %>%
+    head(75) %>%
+    graph_from_data_frame() %>%
+    # doesnt get rid of the loops... one can hope
+    simplify(remove.multiple = FALSE, remove.loops = TRUE) %>%
+    ggraph(layout = 'fr') +
+    geom_edge_link(
+        aes(edge_alpha = N),
+        show.legend = FALSE,
+        arrow = grid::arrow(type = 'closed', length = unit(0.15, 'inches')),
+        end_cap= circle(0.05, 'inches')
+    ) +
+    geom_node_point(color = 'lightblue', size = 5) +
+    geom_node_text(aes(label = name), vjust = 1, hjust = 1) +
+    labs(title = 'Most Frequent Bigrams')
+```
+
+![](README_files/figure-gfm/analysis_relationship_bigram-1.png)<!-- -->
+
+``` r
+set.seed(88)
+bigram_counts_per_user %>%
+    .[, head(.SD, 4), username] %>%
+    .[, .(word1, word2, username, N)] %T>%
+    glimpse() %>%
+    graph_from_data_frame() %T>%
+    print() %>%
+    simplify(remove.multiple = FALSE, remove.loops = TRUE) %>%
+    ggraph(layout = 'fr') +
+    geom_edge_link(
+        arrow = grid::arrow(type = 'closed', length = unit(0.1, 'inches')),
+        end_cap= circle(0.05, 'inches')
+    ) +
+    geom_node_point(color = 'lightblue', size = 2) +
+    geom_node_text(aes(label = name), vjust = 1, hjust = 1) +
+    facet_edges(~username) +
+    labs(title = 'Most Frequent Bigrams by User as Edges')
+```
+
+    ## Rows: 20
+    ## Columns: 4
+    ## $ word1    <chr> "holy", "im", "2", "1", "1st", "3rd", "min", "qu", "page", "…
+    ## $ word2    <chr> "shit", "gonna", "3", "2", "qu", "qu", "1st", "median", "tab…
+    ## $ username <fct> Wallace, Wallace, Wallace, Wallace, Benjamin, Benjamin, Benj…
+    ## $ N        <int> 331, 131, 80, 78, 96, 96, 93, 93, 37, 19, 16, 16, 6, 4, 4, 4…
+    ## IGRAPH 45787c6 DN-- 32 20 -- 
+    ## + attr: name (v/c), username (e/c), N (e/n)
+    ## + edges from 45787c6 (vertex names):
+    ##  [1] holy      ->shit   im        ->gonna  2         ->3      1         ->2     
+    ##  [5] 1st       ->qu     3rd       ->qu     min       ->1st    qu        ->median
+    ##  [9] page      ->table  0         ->0      gonna     ->head   polynomial->time  
+    ## [13] dragon    ->age    dark      ->souls  amish     ->people pa        ->dutch 
+    ## [17] 11        ->10     red       ->weapon 2         ->3      ke        ->kai
+
+![](README_files/figure-gfm/analysis_relationship_bigram-2.png)<!-- -->
