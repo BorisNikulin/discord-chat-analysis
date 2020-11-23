@@ -29,12 +29,12 @@ you can download all of the chat logs in a json format.
 library(jsonlite)
 
 # regular read of direct JSON file
-#chat_json <- read_json('./discord_chat_json_dce.json')$messages
+#chat_json <- read_json('./discord_chat_anonymized.json')$messages
 
 # in memory gunzip, highly recomended to compress large JSON logs
 # read_json(...) == fromJson(..., simplifyVector = FALSE)
 # but handles more than just a string filepath such as connections (R file objects)
-log_gzipped <- gzfile('./discord_chat_json_dce.json.gz', open = 'rb') # fromJSON needs binary
+log_gzipped <- gzfile('./discord_chat_anonymized.json.gz', open = 'rb') # fromJSON needs binary
 chat_json <- fromJSON(log_gzipped, simplifyVector = FALSE)$messages
 close(log_gzipped)
 
@@ -295,7 +295,7 @@ When the term frequency is multiplied with the inverse document frequency,
 we get tf-idf which allows us to see the most common words of a user that are less common among all users
 to see which words characterize users.
 
-```{r analysis_tf_idf}
+```{r analysis_tf_idf, fig.height = 10}
 word_tf_idf <- word_counts %>%
 	bind_tf_idf(word, username, N) %>%
 	setorder(-tf_idf)
@@ -340,10 +340,12 @@ bigram_counts %>%
 	geom_node_point(color = 'lightblue', size = 5) +
 	geom_node_text(aes(label = name), vjust = 1, hjust = 1) +
 	labs(title = 'Most Frequent Bigrams')
+```
 
-set.seed(88)
+```{r analysis_relationship_bigram_per_user_as_edges, fig.width = 8, fig.height = 10}
+set.seed(23)
 bigram_counts_per_user %>%
-	.[, head(.SD, 4), username] %>%
+	.[, head(.SD, 3), username] %>%
 	.[, .(word1, word2, username, N)] %T>%
 	glimpse() %>%
 	graph_from_data_frame() %T>%
@@ -357,5 +359,6 @@ bigram_counts_per_user %>%
 	geom_node_point(color = 'lightblue', size = 2) +
 	geom_node_text(aes(label = name), vjust = 1, hjust = 1) +
 	facet_edges(~username) +
-	labs(title = 'Most Frequent Bigrams by User as Edges')
+	labs(title = 'Most Frequent Bigrams by User as Edges') +
+	coord_cartesian(xlim = c(16,29), expand = TRUE)
 ```

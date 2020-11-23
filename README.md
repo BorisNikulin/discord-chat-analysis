@@ -30,12 +30,12 @@ chat logs in a json format.
 library(jsonlite)
 
 # regular read of direct JSON file
-#chat_json <- read_json('./discord_chat_json_dce.json')$messages
+#chat_json <- read_json('./discord_chat_anonymized.json')$messages
 
 # in memory gunzip, highly recomended to compress large JSON logs
 # read_json(...) == fromJson(..., simplifyVector = FALSE)
 # but handles more than just a string filepath such as connections (R file objects)
-log_gzipped <- gzfile('./discord_chat_json_dce.json.gz', open = 'rb') # fromJSON needs binary
+log_gzipped <- gzfile('./discord_chat_anonymized.json.gz', open = 'rb') # fromJSON needs binary
 chat_json <- fromJSON(log_gzipped, simplifyVector = FALSE)$messages
 close(log_gzipped)
 
@@ -53,7 +53,7 @@ str(chat_json[[1]])
     ##  $ content           : chr "tovarish"
     ##  $ author            :List of 5
     ##   ..$ id           : chr "162781767122550784"
-    ##   ..$ name         : chr "Focu5"
+    ##   ..$ name         : chr "Benjamin"
     ##   ..$ discriminator: chr "8767"
     ##   ..$ isBot        : logi FALSE
     ##   ..$ avatarUrl    : chr "https://cdn.discordapp.com/avatars/162781767122550784/292f7eff05847dbae524ca6bf22b19bf.png"
@@ -97,7 +97,7 @@ glimpse(chat)
     ## Rows: 686,310
     ## Columns: 3
     ## $ timestamp <dttm> 2016-09-02 20:22:36, 2016-09-02 20:22:38, 2016-09-02 20:28…
-    ## $ username  <fct> Focu5, Focu5, naknak, naknak, Focu5, Focu5, Focu5, Focu5, F…
+    ## $ username  <fct> Benjamin, Benjamin, Wallace, Wallace, Benjamin, Benjamin, B…
     ## $ message   <chr> "tovarish", "really", "yeah", "so lets use this from now on…
 
 ``` r
@@ -145,7 +145,7 @@ glimpse(words)
     ## Rows: 1,158,391
     ## Columns: 3
     ## $ timestamp <dttm> 2016-09-02 20:22:36, 2016-09-02 20:28:12, 2016-09-02 20:35…
-    ## $ username  <fct> Focu5, naknak, Focu5, Focu5, Focu5, Focu5, Focu5, Focu5, Fo…
+    ## $ username  <fct> Benjamin, Wallace, Benjamin, Benjamin, Benjamin, Benjamin, …
     ## $ word      <chr> "tovarish", "yeah", "lol", "skype", "wont", "reacive", "ins…
 
 ### Bigram Tokenization
@@ -170,7 +170,7 @@ glimpse(bigrams)
     ## Rows: 574,336
     ## Columns: 4
     ## $ timestamp <dttm> 2016-09-02 20:22:36, 2016-09-02 20:22:38, 2016-09-02 20:28…
-    ## $ username  <fct> Focu5, Focu5, naknak, Focu5, Focu5, Focu5, Focu5, Focu5, Fo…
+    ## $ username  <fct> Benjamin, Benjamin, Wallace, Benjamin, Benjamin, Benjamin, …
     ## $ word1     <chr> NA, NA, NA, NA, "wont", "reacive", "instant", NA, NA, NA, N…
     ## $ word2     <chr> NA, NA, NA, NA, "reacive", "instant", "messages", NA, NA, N…
 
@@ -188,35 +188,35 @@ word_counts <- words %>%
 word_counts[, head(.SD, 3), username]
 ```
 
-    ##       username       word     N
-    ##  1:      Focu5        lol 10669
-    ##  2:      Focu5       yeah  5038
-    ##  3:      Focu5         im  4222
-    ##  4:       Caje        lol  5032
-    ##  5:       Caje       yeah  2295
-    ##  6:       Caje        yea   803
-    ##  7:     naknak      boris  4800
-    ##  8:     naknak         im  4795
-    ##  9:     naknak        lol  3556
-    ## 10: Esherymack        lol  1465
-    ## 11: Esherymack      boris  1254
-    ## 12: Esherymack       yeah   889
-    ## 13:    MathBot          1   213
-    ## 14:    MathBot          2   196
-    ## 15:    MathBot          3    63
-    ## 16:  freer-bot          1   147
-    ## 17:  freer-bot unexpected    69
-    ## 18:  freer-bot  expecting    69
-    ## 19:   Aistaldo       yeah   114
-    ## 20:   Aistaldo      boris    52
-    ## 21:   Aistaldo       caje    50
-    ## 22:   CaitMate       it’s    70
-    ## 23:   CaitMate        i’m    68
-    ## 24:   CaitMate   aistaldo    43
-    ## 25:       dark      books     8
-    ## 26:       dark         cs     5
-    ## 27:       dark       math     4
-    ##       username       word     N
+    ##      username       word     N
+    ##  1:  Benjamin        lol 10669
+    ##  2:  Benjamin       yeah  5038
+    ##  3:  Benjamin         im  4222
+    ##  4:   Michael        lol  5032
+    ##  5:   Michael       yeah  2295
+    ##  6:   Michael        yea   803
+    ##  7:   Wallace      boris  4800
+    ##  8:   Wallace         im  4795
+    ##  9:   Wallace        lol  3556
+    ## 10:     Molly        lol  1465
+    ## 11:     Molly      boris  1254
+    ## 12:     Molly       yeah   889
+    ## 13:   MathBot          1   213
+    ## 14:   MathBot          2   196
+    ## 15:   MathBot          3    63
+    ## 16: freer-bot          1   147
+    ## 17: freer-bot unexpected    69
+    ## 18: freer-bot  expecting    69
+    ## 19:     Peter       yeah   114
+    ## 20:     Peter      boris    52
+    ## 21:     Peter       caje    50
+    ## 22:      Kate       it’s    70
+    ## 23:      Kate        i’m    68
+    ## 24:      Kate   aistaldo    43
+    ## 25:     Darth      books     8
+    ## 26:     Darth         cs     5
+    ## 27:     Darth       math     4
+    ##      username       word     N
 
 How about visually?
 
@@ -386,17 +386,17 @@ copy(words)[, time := floor_date(timestamp, '4 hours')] %>%
 ```
 
     ##                 timestamp username    word                time hours_chunk
-    ##    1: 2016-11-06 01:36:45    Focu5 samsung 2016-11-06 01:00:00           1
-    ##    2: 2016-11-06 01:36:45    Focu5      85 2016-11-06 01:00:00           1
-    ##    3: 2016-11-06 01:36:45    Focu5 percent 2016-11-06 01:00:00           1
-    ##    4: 2016-11-06 01:36:45    Focu5    note 2016-11-06 01:00:00           1
-    ##    5: 2016-11-06 01:36:45    Focu5      7s 2016-11-06 01:00:00           1
+    ##    1: 2016-11-06 01:36:45 Benjamin samsung 2016-11-06 01:00:00           1
+    ##    2: 2016-11-06 01:36:45 Benjamin      85 2016-11-06 01:00:00           1
+    ##    3: 2016-11-06 01:36:45 Benjamin percent 2016-11-06 01:00:00           1
+    ##    4: 2016-11-06 01:36:45 Benjamin    note 2016-11-06 01:00:00           1
+    ##    5: 2016-11-06 01:36:45 Benjamin      7s 2016-11-06 01:00:00           1
     ##   ---                                                                     
-    ## 1063: 2020-11-01 02:36:46    Focu5      ツ 2020-11-01 01:00:00           1
-    ## 1064: 2020-11-01 02:36:57    Focu5    live 2020-11-01 01:00:00           1
-    ## 1065: 2020-11-01 02:36:57    Focu5 villain 2020-11-01 01:00:00           1
-    ## 1066: 2020-11-01 02:37:09    Focu5   anger 2020-11-01 01:00:00           1
-    ## 1067: 2020-11-01 02:37:09    Focu5 quelled 2020-11-01 01:00:00           1
+    ## 1063: 2020-11-01 02:36:46 Benjamin      ツ 2020-11-01 01:00:00           1
+    ## 1064: 2020-11-01 02:36:57 Benjamin    live 2020-11-01 01:00:00           1
+    ## 1065: 2020-11-01 02:36:57 Benjamin villain 2020-11-01 01:00:00           1
+    ## 1066: 2020-11-01 02:37:09 Benjamin   anger 2020-11-01 01:00:00           1
+    ## 1067: 2020-11-01 02:37:09 Benjamin quelled 2020-11-01 01:00:00           1
 
 ``` r
 unique(tz(chat[, timestamp]))
@@ -435,7 +435,7 @@ glimpse(words_by_hour_per_user)
     ## Rows: 14,351
     ## Columns: 4
     ## $ timestamp              <dttm> 2016-09-02 20:00:00, 2016-09-02 20:00:00, 201…
-    ## $ username               <fct> Focu5, naknak, Focu5, naknak, naknak, Focu5, n…
+    ## $ username               <fct> Benjamin, Wallace, Benjamin, Wallace, Wallace,…
     ## $ words_in_hour_per_user <int> 935, 216, 511, 348, 555, 498, 44, 340, 94, 10,…
     ## $ hours_chunk            <int> 20, 20, 0, 0, 4, 4, 8, 8, 8, 12, 16, 16, 20, 2…
 
@@ -477,35 +477,35 @@ head(bigram_counts, 5)
 bigram_counts_per_user[, head(.SD, 3), username]
 ```
 
-    ##       username      word1     word2   N
-    ##  1:     naknak       holy      shit 647
-    ##  2:     naknak         im     gonna 243
-    ##  3:     naknak          1         2 178
-    ##  4:      Focu5      makes     sense 283
-    ##  5:      Focu5       copy     paste 196
-    ##  6:      Focu5          2         3 175
-    ##  7:       Caje       yeah       idk  65
-    ##  8:       Caje     visual    studio  52
-    ##  9:       Caje      gonna      head  51
-    ## 10: Esherymack    morning     boris  56
-    ## 11: Esherymack        bap       bap  48
-    ## 12: Esherymack          0         0  35
-    ## 13:    MathBot    wolfram     alpha  43
-    ## 14:    MathBot  rendering    failed  35
-    ## 15:    MathBot     failed     check  35
-    ## 16:  freer-bot unexpected expecting  41
-    ## 17:  freer-bot      white     space  38
-    ## 18:  freer-bot  expecting      ping  24
-    ## 19:   Aistaldo         11        10   6
-    ## 20:   Aistaldo       heck      yeah   4
-    ## 21:   Aistaldo      feels       bad   4
-    ## 22:   CaitMate     garlic     toast   4
-    ## 23:   CaitMate     garlic     bread   4
-    ## 24:   CaitMate      green     giant   4
-    ## 25:       dark       math     major   2
-    ## 26:       dark       drop    school   2
-    ## 27:       dark         ez        cs   1
-    ##       username      word1     word2   N
+    ##      username      word1     word2   N
+    ##  1:   Wallace       holy      shit 647
+    ##  2:   Wallace         im     gonna 243
+    ##  3:   Wallace          1         2 178
+    ##  4:  Benjamin      makes     sense 283
+    ##  5:  Benjamin       copy     paste 196
+    ##  6:  Benjamin          2         3 175
+    ##  7:   Michael       yeah       idk  65
+    ##  8:   Michael     visual    studio  52
+    ##  9:   Michael      gonna      head  51
+    ## 10:     Molly    morning     boris  56
+    ## 11:     Molly        bap       bap  48
+    ## 12:     Molly          0         0  35
+    ## 13:   MathBot    wolfram     alpha  43
+    ## 14:   MathBot  rendering    failed  35
+    ## 15:   MathBot     failed     check  35
+    ## 16: freer-bot unexpected expecting  41
+    ## 17: freer-bot      white     space  38
+    ## 18: freer-bot  expecting      ping  24
+    ## 19:     Peter         11        10   6
+    ## 20:     Peter       heck      yeah   4
+    ## 21:     Peter      feels       bad   4
+    ## 22:      Kate     garlic     toast   4
+    ## 23:      Kate     garlic     bread   4
+    ## 24:      Kate      green     giant   4
+    ## 25:     Darth       math     major   2
+    ## 26:     Darth       drop    school   2
+    ## 27:     Darth         ez        cs   1
+    ##      username      word1     word2   N
 
 ### Characteristic Words
 
@@ -532,25 +532,25 @@ word_tf_idf <- word_counts %>%
 word_tf_idf[, head(.SD, 2), username]
 ```
 
-    ##       username                 word    N           tf       idf      tf_idf
-    ##  1:     naknak                         1 2.344309e-06        NA          NA
-    ##  2:     naknak                 dont 3530 8.275409e-03 0.5877867 0.004864175
-    ##  3:  freer-bot            expecting   69 8.603491e-02 0.5877867 0.050570174
-    ##  4:  freer-bot           unexpected   69 8.603491e-02 0.4054651 0.034884155
-    ##  5:       dark                  kys    4 1.923077e-02 1.0986123 0.021127159
-    ##  6:       dark                 econ    4 1.923077e-02 0.8109302 0.015594812
-    ##  7:    MathBot www.wolframalpha.com   19 9.134615e-03 2.1972246 0.020070801
-    ##  8:    MathBot                alpha   44 2.115385e-02 0.5877867 0.012433949
-    ##  9:   CaitMate                 it’s   70 2.121212e-02 0.8109302 0.017201550
-    ## 10:   CaitMate                  i’m   68 2.060606e-02 0.8109302 0.016710077
-    ## 11:      Focu5                   ツ 3207 6.308795e-03 0.8109302 0.005115992
-    ## 12:      Focu5                 dont 4091 8.047795e-03 0.5877867 0.004730387
-    ## 13:   Aistaldo                 sael   36 6.159110e-03 0.8109302 0.004994609
-    ## 14:   Aistaldo                 yeah  114 1.950385e-02 0.2513144 0.004901599
-    ## 15:       Caje                shizz  617 4.439424e-03 1.0986123 0.004877206
-    ## 16:       Caje                  yea  803 5.777727e-03 0.8109302 0.004685333
-    ## 17: Esherymack                  cos  361 4.995088e-03 0.8109302 0.004050668
-    ## 18: Esherymack                 yeah  889 1.230092e-02 0.2513144 0.003091399
+    ##      username                 word    N           tf       idf      tf_idf
+    ##  1:   Wallace                         1 2.344309e-06        NA          NA
+    ##  2:   Wallace                 dont 3530 8.275409e-03 0.5877867 0.004864175
+    ##  3: freer-bot            expecting   69 8.603491e-02 0.5877867 0.050570174
+    ##  4: freer-bot           unexpected   69 8.603491e-02 0.4054651 0.034884155
+    ##  5:     Darth                  kys    4 1.923077e-02 1.0986123 0.021127159
+    ##  6:     Darth                 econ    4 1.923077e-02 0.8109302 0.015594812
+    ##  7:   MathBot www.wolframalpha.com   19 9.134615e-03 2.1972246 0.020070801
+    ##  8:   MathBot                alpha   44 2.115385e-02 0.5877867 0.012433949
+    ##  9:      Kate                 it’s   70 2.121212e-02 0.8109302 0.017201550
+    ## 10:      Kate                  i’m   68 2.060606e-02 0.8109302 0.016710077
+    ## 11:  Benjamin                   ツ 3207 6.308795e-03 0.8109302 0.005115992
+    ## 12:  Benjamin                 dont 4091 8.047795e-03 0.5877867 0.004730387
+    ## 13:     Peter                 sael   36 6.159110e-03 0.8109302 0.004994609
+    ## 14:     Peter                 yeah  114 1.950385e-02 0.2513144 0.004901599
+    ## 15:   Michael                shizz  617 4.439424e-03 1.0986123 0.004877206
+    ## 16:   Michael                  yea  803 5.777727e-03 0.8109302 0.004685333
+    ## 17:     Molly                  cos  361 4.995088e-03 0.8109302 0.004050668
+    ## 18:     Molly                 yeah  889 1.230092e-02 0.2513144 0.003091399
 
 ``` r
 # order within factors is wack but is correct as top tf-idf per user
@@ -598,9 +598,9 @@ bigram_counts %>%
 ![](README_files/figure-gfm/analysis_relationship_bigram-1.png)<!-- -->
 
 ``` r
-set.seed(88)
+set.seed(23)
 bigram_counts_per_user %>%
-    .[, head(.SD, 4), username] %>%
+    .[, head(.SD, 3), username] %>%
     .[, .(word1, word2, username, N)] %T>%
     glimpse() %>%
     graph_from_data_frame() %T>%
@@ -614,26 +614,27 @@ bigram_counts_per_user %>%
     geom_node_point(color = 'lightblue', size = 2) +
     geom_node_text(aes(label = name), vjust = 1, hjust = 1) +
     facet_edges(~username) +
-    labs(title = 'Most Frequent Bigrams by User as Edges')
+    labs(title = 'Most Frequent Bigrams by User as Edges') +
+    coord_cartesian(xlim = c(16,29), expand = TRUE)
 ```
 
-    ## Rows: 36
+    ## Rows: 27
     ## Columns: 4
-    ## $ word1    <chr> "holy", "im", "1", "2", "makes", "copy", "2", "lol", "yeah",…
-    ## $ word2    <chr> "shit", "gonna", "2", "3", "sense", "paste", "3", "wat", "id…
-    ## $ username <fct> naknak, naknak, naknak, naknak, Focu5, Focu5, Focu5, Focu5, …
-    ## $ N        <int> 647, 243, 178, 168, 283, 196, 175, 172, 65, 52, 51, 49, 56, …
-    ## IGRAPH 7548556 DN-- 56 36 -- 
+    ## $ word1    <chr> "holy", "im", "1", "makes", "copy", "2", "yeah", "visual", "…
+    ## $ word2    <chr> "shit", "gonna", "2", "sense", "paste", "3", "idk", "studio"…
+    ## $ username <fct> Wallace, Wallace, Wallace, Benjamin, Benjamin, Benjamin, Mic…
+    ## $ N        <int> 647, 243, 178, 283, 196, 175, 65, 52, 51, 56, 48, 35, 43, 35…
+    ## IGRAPH 28abaf6 DN-- 46 27 -- 
     ## + attr: name (v/c), username (e/c), N (e/n)
-    ## + edges from 7548556 (vertex names):
+    ## + edges from 28abaf6 (vertex names):
     ##  [1] holy      ->shit      im        ->gonna     1         ->2        
-    ##  [4] 2         ->3         makes     ->sense     copy      ->paste    
-    ##  [7] 2         ->3         lol       ->wat       yeah      ->idk      
-    ## [10] visual    ->studio    gonna     ->head      makes     ->sense    
-    ## [13] morning   ->boris     bap       ->bap       0         ->0        
-    ## [16] 1         ->2         wolfram   ->alpha     rendering ->failed   
-    ## [19] failed    ->check     existing  ->message   unexpected->expecting
-    ## [22] white     ->space     expecting ->ping      expecting ->white    
+    ##  [4] makes     ->sense     copy      ->paste     2         ->3        
+    ##  [7] yeah      ->idk       visual    ->studio    gonna     ->head     
+    ## [10] morning   ->boris     bap       ->bap       0         ->0        
+    ## [13] wolfram   ->alpha     rendering ->failed    failed    ->check    
+    ## [16] unexpected->expecting white     ->space     expecting ->ping     
+    ## [19] 11        ->10        heck      ->yeah      feels     ->bad      
+    ## [22] garlic    ->toast     garlic    ->bread     green     ->giant    
     ## + ... omitted several edges
 
-![](README_files/figure-gfm/analysis_relationship_bigram-2.png)<!-- -->
+![](README_files/figure-gfm/analysis_relationship_bigram_per_user_as_edges-1.png)<!-- -->
