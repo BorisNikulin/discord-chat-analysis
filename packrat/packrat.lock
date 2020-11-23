@@ -1,0 +1,414 @@
+PackratFormat: 1.4
+PackratVersion: 0.5.0
+RVersion: 4.0.3
+Repos: CRAN=https://cloud.r-project.org/
+
+Package: R6
+Source: CRAN
+Version: 2.5.0
+
+Package: RColorBrewer
+Source: CRAN
+Version: 1.1-2
+
+Package: Rcpp
+Source: CRAN
+Version: 1.0.5
+
+Package: RcppArmadillo
+Source: CRAN
+Version: 0.10.1.2.0
+Requires: Rcpp
+
+Package: RcppEigen
+Source: CRAN
+Version: 0.3.3.7.0
+Requires: Rcpp
+
+Package: SnowballC
+Source: CRAN
+Version: 0.7.0
+
+Package: assertthat
+Source: CRAN
+Version: 0.2.1
+
+Package: backports
+Source: CRAN
+Version: 1.2.0
+
+Package: base64enc
+Source: CRAN
+Version: 0.1-3
+
+Package: brio
+Source: CRAN
+Version: 1.1.0
+
+Package: broom
+Source: CRAN
+Version: 0.7.2
+Requires: backports, dplyr, ellipsis, generics, glue, purrr, rlang,
+    stringr, tibble, tidyr
+
+Package: callr
+Source: CRAN
+Version: 3.5.1
+Requires: R6, processx
+
+Package: cli
+Source: CRAN
+Version: 2.2.0
+Requires: assertthat, crayon, fansi, glue
+
+Package: colorspace
+Source: CRAN
+Version: 2.0-0
+
+Package: cpp11
+Source: CRAN
+Version: 0.2.4
+
+Package: crayon
+Source: CRAN
+Version: 1.3.4
+
+Package: desc
+Source: CRAN
+Version: 1.2.0
+Requires: R6, assertthat, crayon, rprojroot
+
+Package: diffobj
+Source: CRAN
+Version: 0.3.2
+Requires: crayon
+
+Package: digest
+Source: CRAN
+Version: 0.6.27
+
+Package: dplyr
+Source: CRAN
+Version: 1.0.2
+Requires: R6, ellipsis, generics, glue, lifecycle, magrittr, rlang,
+    tibble, tidyselect, vctrs
+
+Package: ellipsis
+Source: CRAN
+Version: 0.3.1
+Requires: rlang
+
+Package: evaluate
+Source: CRAN
+Version: 0.14
+
+Package: fansi
+Source: CRAN
+Version: 0.4.1
+
+Package: farver
+Source: CRAN
+Version: 2.0.3
+
+Package: generics
+Source: CRAN
+Version: 0.1.0
+
+Package: ggforce
+Source: CRAN
+Version: 0.3.2
+Requires: Rcpp, RcppEigen, ggplot2, gtable, polyclip, rlang, scales,
+    tidyselect, tweenr, withr
+
+Package: ggplot2
+Source: CRAN
+Version: 3.3.2
+Requires: digest, glue, gtable, isoband, rlang, scales, tibble, withr
+
+Package: ggraph
+Source: CRAN
+Version: 2.0.4
+Requires: Rcpp, digest, dplyr, ggforce, ggplot2, ggrepel, graphlayouts,
+    gtable, igraph, rlang, scales, tidygraph, viridis, withr
+
+Package: ggrepel
+Source: CRAN
+Version: 0.8.2
+Requires: Rcpp, ggplot2, scales
+
+Package: glue
+Source: CRAN
+Version: 1.4.2
+
+Package: graphlayouts
+Source: CRAN
+Version: 0.7.1
+Requires: Rcpp, RcppArmadillo, igraph
+
+Package: gridExtra
+Source: CRAN
+Version: 2.3
+Requires: gtable
+
+Package: gtable
+Source: CRAN
+Version: 0.3.0
+
+Package: highr
+Source: CRAN
+Version: 0.8
+
+Package: htmltools
+Source: CRAN
+Version: 0.5.0
+Requires: base64enc, digest, rlang
+
+Package: hunspell
+Source: CRAN
+Version: 3.0
+Requires: Rcpp, digest
+
+Package: igraph
+Source: CRAN
+Version: 1.2.6
+Requires: magrittr, pkgconfig
+
+Package: isoband
+Source: CRAN
+Version: 0.2.2
+Requires: testthat
+
+Package: janeaustenr
+Source: CRAN
+Version: 0.1.5
+
+Package: jsonlite
+Source: CRAN
+Version: 1.7.1
+
+Package: knitr
+Source: CRAN
+Version: 1.30
+Requires: evaluate, highr, markdown, stringr, xfun, yaml
+
+Package: labeling
+Source: CRAN
+Version: 0.4.2
+
+Package: lifecycle
+Source: CRAN
+Version: 0.2.0
+Requires: glue, rlang
+
+Package: lubridate
+Source: CRAN
+Version: 1.7.9.2
+Requires: Rcpp, generics
+
+Package: magrittr
+Source: CRAN
+Version: 2.0.1
+
+Package: markdown
+Source: CRAN
+Version: 1.1
+Requires: mime, xfun
+
+Package: mime
+Source: CRAN
+Version: 0.9
+
+Package: munsell
+Source: CRAN
+Version: 0.5.0
+Requires: colorspace
+
+Package: packrat
+Source: CRAN
+Version: 0.5.0
+Hash: 498643e765d1442ba7b1160a1df3abf9
+
+Package: pillar
+Source: CRAN
+Version: 1.4.7
+Requires: cli, crayon, ellipsis, fansi, lifecycle, rlang, utf8, vctrs
+
+Package: pkgbuild
+Source: CRAN
+Version: 1.1.0
+Requires: R6, callr, cli, crayon, desc, prettyunits, rprojroot, withr
+
+Package: pkgconfig
+Source: CRAN
+Version: 2.0.3
+
+Package: pkgload
+Source: CRAN
+Version: 1.1.0
+Requires: cli, crayon, desc, pkgbuild, rlang, rprojroot, rstudioapi,
+    withr
+
+Package: plyr
+Source: CRAN
+Version: 1.8.6
+Requires: Rcpp
+
+Package: polyclip
+Source: CRAN
+Version: 1.10-0
+
+Package: praise
+Source: CRAN
+Version: 1.0.0
+
+Package: prettyunits
+Source: CRAN
+Version: 1.1.1
+
+Package: processx
+Source: CRAN
+Version: 3.4.4
+Requires: R6, ps
+
+Package: ps
+Source: CRAN
+Version: 1.4.0
+
+Package: purrr
+Source: CRAN
+Version: 0.3.4
+Requires: magrittr, rlang
+
+Package: rematch2
+Source: CRAN
+Version: 2.1.2
+Requires: tibble
+
+Package: reshape2
+Source: CRAN
+Version: 1.4.4
+Requires: Rcpp, plyr, stringr
+
+Package: rlang
+Source: CRAN
+Version: 0.4.8
+
+Package: rmarkdown
+Source: CRAN
+Version: 2.5
+Requires: evaluate, htmltools, jsonlite, knitr, stringr, tinytex, xfun,
+    yaml
+
+Package: rprojroot
+Source: CRAN
+Version: 2.0.2
+
+Package: rstudioapi
+Source: CRAN
+Version: 0.13
+
+Package: scales
+Source: CRAN
+Version: 1.1.1
+Requires: R6, RColorBrewer, farver, labeling, lifecycle, munsell,
+    viridisLite
+
+Package: stringi
+Source: CRAN
+Version: 1.5.3
+
+Package: stringr
+Source: CRAN
+Version: 1.4.0
+Requires: glue, magrittr, stringi
+
+Package: testthat
+Source: CRAN
+Version: 3.0.0
+Requires: R6, brio, callr, cli, crayon, desc, digest, ellipsis,
+    evaluate, jsonlite, lifecycle, magrittr, pkgload, praise, processx,
+    ps, rlang, waldo, withr
+
+Package: tibble
+Source: CRAN
+Version: 3.0.4
+Requires: cli, crayon, ellipsis, fansi, lifecycle, magrittr, pillar,
+    pkgconfig, rlang, vctrs
+
+Package: tidygraph
+Source: CRAN
+Version: 1.2.0
+Requires: R6, Rcpp, dplyr, igraph, magrittr, pillar, rlang, tibble,
+    tidyr
+
+Package: tidyr
+Source: CRAN
+Version: 1.1.2
+Requires: cpp11, dplyr, ellipsis, glue, lifecycle, magrittr, purrr,
+    rlang, tibble, tidyselect, vctrs
+
+Package: tidyselect
+Source: CRAN
+Version: 1.1.0
+Requires: ellipsis, glue, purrr, rlang, vctrs
+
+Package: tidytext
+Source: CRAN
+Version: 0.2.6
+Requires: dplyr, generics, hunspell, janeaustenr, purrr, rlang,
+    stringr, tibble, tokenizers
+
+Package: tinytex
+Source: CRAN
+Version: 0.27
+Requires: xfun
+
+Package: tokenizers
+Source: CRAN
+Version: 0.2.1
+Requires: Rcpp, SnowballC, stringi
+
+Package: tweenr
+Source: CRAN
+Version: 1.0.1
+Requires: Rcpp, farver, magrittr, rlang
+
+Package: utf8
+Source: CRAN
+Version: 1.1.4
+
+Package: vctrs
+Source: CRAN
+Version: 0.3.5
+Requires: digest, ellipsis, glue, rlang
+
+Package: viridis
+Source: CRAN
+Version: 0.5.1
+Requires: ggplot2, gridExtra, viridisLite
+
+Package: viridisLite
+Source: CRAN
+Version: 0.3.0
+
+Package: waldo
+Source: CRAN
+Version: 0.2.3
+Requires: cli, diffobj, fansi, glue, rematch2, rlang, tibble
+
+Package: widyr
+Source: CRAN
+Version: 0.1.3
+Requires: broom, dplyr, purrr, reshape2, rlang, tidyr, tidytext
+
+Package: withr
+Source: CRAN
+Version: 2.3.0
+
+Package: xfun
+Source: CRAN
+Version: 0.19
+
+Package: yaml
+Source: CRAN
+Version: 2.2.1
