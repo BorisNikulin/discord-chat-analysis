@@ -8,21 +8,19 @@ editing this poorly written document into something nice.
 
 ## Data Acquisition
 
-To get the data needed for analysis, there are two methods. First is the
-discord api’s [Get Channel
+To get the data needed for analysis, one can go directly to the source
+via [Get Channel
 Message](https://discordapp.com/developers/docs/resources/channel#get-channel-messages)
-to manually retrieve the messages. The second, is to get a discord bot
-to do it for you. However, if you do not wish to setup a bot, you can
-use the first method to do bare api calls in python.
+or use an existing tool to do it for you. The most prominent utility is
+[DiscordChatExporter](https://github.com/Tyrrrz/DiscordChatExporter).
+Although the JSON schema it exports is slightly different to the Discord
+API spec, not counting added data by the tool, the data is easy to
+aquire and use.
 
-Big thanks to
-[DiscordArchiver](https://github.com/Jiiks/DiscordArchiver/blob/master/DiscordArchiver/Program.cs#L15)
-for the undocumented (and probably old api that may be discontinued on
-October 16, 2017) url parameter for the token.
-
-After creating `discord_chat_dl.py` and running it with the token, the
-channel id, and the id of the last message, you can download all of the
-chat logs in a json format.
+Using DiscordChatExporter, an auth token, and a channel id one can
+export all chat history in JSON format and then import it into R. Once
+imported, we can toss the extra data added about the channel export by
+directly acessing the nested list of messages.
 
 ## Data Import
 
@@ -61,7 +59,7 @@ str(chat_json[[1]])
     ##  $ embeds            : list()
     ##  $ reactions         : list()
 
-This imports the json chat log as an R list. However, the list is not
+This imports the json messages as an R list. However, the list is not
 uniform in fields across message entries as some messages have
 reactions, a feature introduced later in Discord’s development that
 messages before the update do not have. This inconsistency prevents
@@ -84,12 +82,13 @@ library(dtplyr)
 
 chat <- data.table(
     timestamp = map_chr(chat_json, 'timestamp') %>% ymd_hms(),
+    # Discord author JSON spec calls the field `username` not `name`
     username = map_chr(chat_json, c('author', 'name')) %>% as.factor(),
     message = map_chr(chat_json, 'content')
 )
 rm(chat_json)
 
-chat[, timestamp := with_tz(timestamp, tzone = 'US/Pacific')] # convert to PST (same time)
+chat[, timestamp := with_tz(timestamp, tzone = 'US/Pacific')] # convert to PST/PDT (same time)
 
 glimpse(chat)
 ```
@@ -624,9 +623,9 @@ bigram_counts_per_user %>%
     ## $ word2    <chr> "shit", "gonna", "2", "sense", "paste", "3", "idk", "studio"…
     ## $ username <fct> Wallace, Wallace, Wallace, Benjamin, Benjamin, Benjamin, Mic…
     ## $ N        <int> 647, 243, 178, 283, 196, 175, 65, 52, 51, 56, 48, 35, 43, 35…
-    ## IGRAPH 28abaf6 DN-- 46 27 -- 
+    ## IGRAPH 3014c97 DN-- 46 27 -- 
     ## + attr: name (v/c), username (e/c), N (e/n)
-    ## + edges from 28abaf6 (vertex names):
+    ## + edges from 3014c97 (vertex names):
     ##  [1] holy      ->shit      im        ->gonna     1         ->2        
     ##  [4] makes     ->sense     copy      ->paste     2         ->3        
     ##  [7] yeah      ->idk       visual    ->studio    gonna     ->head     
