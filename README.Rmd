@@ -40,10 +40,8 @@ library(jsonlite)
 log_gzipped <- gzfile('./discord_chat_anonymized.json.gz', open = 'rb') # fromJSON needs binary
 chat_json <- fromJSON(log_gzipped, simplifyVector = FALSE)$messages
 close(log_gzipped)
-
-# check schema of first message
-str(chat_json[[1]])
 ```
+
 This imports the json messages as an R list.
 However, the list is not uniform in fields across message entries as some messages have reactions,
 a feature introduced later in Discord's development that messages before the update do not have.

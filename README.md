@@ -36,28 +36,7 @@ library(jsonlite)
 log_gzipped <- gzfile('./discord_chat_anonymized.json.gz', open = 'rb') # fromJSON needs binary
 chat_json <- fromJSON(log_gzipped, simplifyVector = FALSE)$messages
 close(log_gzipped)
-
-# check schema of first message
-str(chat_json[[1]])
 ```
-
-    ## List of 11
-    ##  $ id                : chr "221469972705050624"
-    ##  $ type              : chr "Default"
-    ##  $ timestamp         : chr "2016-09-03T03:22:36.206+00:00"
-    ##  $ timestampEdited   : NULL
-    ##  $ callEndedTimestamp: NULL
-    ##  $ isPinned          : logi FALSE
-    ##  $ content           : chr "tovarish"
-    ##  $ author            :List of 5
-    ##   ..$ id           : chr "162781767122550784"
-    ##   ..$ name         : chr "Benjamin"
-    ##   ..$ discriminator: chr "8767"
-    ##   ..$ isBot        : logi FALSE
-    ##   ..$ avatarUrl    : chr "https://cdn.discordapp.com/avatars/162781767122550784/292f7eff05847dbae524ca6bf22b19bf.png"
-    ##  $ attachments       : list()
-    ##  $ embeds            : list()
-    ##  $ reactions         : list()
 
 This imports the json messages as an R list. However, the list is not
 uniform in fields across message entries as some messages have
@@ -623,9 +602,9 @@ bigram_counts_per_user %>%
     ## $ word2    <chr> "shit", "gonna", "2", "sense", "paste", "3", "idk", "studio"…
     ## $ username <fct> Wallace, Wallace, Wallace, Benjamin, Benjamin, Benjamin, Mic…
     ## $ N        <int> 647, 243, 178, 283, 196, 175, 65, 52, 51, 56, 48, 35, 43, 35…
-    ## IGRAPH 3014c97 DN-- 46 27 -- 
+    ## IGRAPH aa46528 DN-- 46 27 -- 
     ## + attr: name (v/c), username (e/c), N (e/n)
-    ## + edges from 3014c97 (vertex names):
+    ## + edges from aa46528 (vertex names):
     ##  [1] holy      ->shit      im        ->gonna     1         ->2        
     ##  [4] makes     ->sense     copy      ->paste     2         ->3        
     ##  [7] yeah      ->idk       visual    ->studio    gonna     ->head     
