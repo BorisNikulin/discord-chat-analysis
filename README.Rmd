@@ -12,31 +12,45 @@ A large thank you to [William Zhu](https://github.com/ZhuWilliam) for editing th
 written document into something nice.
 
 ## Data Acquisition
-To get the data needed for analysis, there are two methods. First is the discord api's
+To get the data needed for analysis, one can go directly to the source via
 [Get Channel Message](https://discordapp.com/developers/docs/resources/channel#get-channel-messages)
-to manually retrieve the messages. The second, is to get a discord bot to do it for you.
-However, if you do not wish to setup a bot, you can use the first method to do bare api calls in python.
+or use an existing tool to do it for you.
+The most prominent utility is
+[DiscordChatExporter](https://github.com/Tyrrrz/DiscordChatExporter).
+Although the JSON schema it exports is slightly different to the Discord API spec,
+not counting added data by the tool,
+the data is easy to aquire and use.
 
-Big thanks to
-[DiscordArchiver](https://github.com/Jiiks/DiscordArchiver/blob/master/DiscordArchiver/Program.cs#L15)
-for the undocumented (and probably old api that may be discontinued on October 16, 2017) url parameter for the token.
-
-After creating `discord_chat_dl.py` and running it with the token, the channel id, and the id of the last message,
-you can download all of the chat logs in a json format.
+Using DiscordChatExporter, an auth token, and a channel id
+one can export all chat history in JSON format
+and then import it into R.
+Once imported, we can toss the extra data added about the channel export
+by directly acessing the nested list of messages.
 
 ## Data Import
 ```{r import_json}
 library(jsonlite)
 
-chat_json <- read_json('discord_chat_anonymized.json')
+# regular read of direct JSON file
+#chat_json <- read_json('./discord_chat_anonymized.json')$messages
+
+# in memory gunzip, highly recomended to compress large JSON logs
+# read_json(...) == fromJson(..., simplifyVector = FALSE)
+# but handles more than just a string filepath such as connections (R file objects)
+log_gzipped <- gzfile('./discord_chat_anonymized.json.gz', open = 'rb') # fromJSON needs binary
+chat_json <- fromJSON(log_gzipped, simplifyVector = FALSE)$messages
+close(log_gzipped)
+
+# check schema of first message
+str(chat_json[[1]])
 ```
-This imports the json chat log as an R list.
+This imports the json messages as an R list.
 However, the list is not uniform in fields across message entries as some messages have reactions,
 a feature introduced later in Discord's development that messages before the update do not have.
 This inconsistency prevents running the list into `data.table::rbindlist`, so I used an alternative method.
 I extracted the relevant fields with
 [purrr](https://cran.r-project.org/web/packages/purrr/vignettes/other-langs.html) and then stitched it back together into a
-[data.table](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html).
+[data.table](https://cran.r-project.org/web/packages/data.table/vignettcs/datatable-intro.html).
 I then checked the result with [dplyr's](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html) glimpse.
 Note that time was converted to PST/PDT.
 All times shown will be with repsect to PST/PDT.
@@ -50,11 +64,13 @@ library(dtplyr)
 
 chat <- data.table(
 	timestamp = map_chr(chat_json, 'timestamp') %>% ymd_hms(),
-	username = map_chr(chat_json, c('author', 'username')) %>% as.factor(),
+	# Discord author JSON spec calls the field `username` not `name`
+	username = map_chr(chat_json, c('author', 'name')) %>% as.factor(),
 	message = map_chr(chat_json, 'content')
-	)
+)
+rm(chat_json)
 
-chat[, timestamp := with_tz(timestamp, tzone = 'US/Pacific')] # convert to PST (same time)
+chat[, timestamp := with_tz(timestamp, tzone = 'US/Pacific')] # convert to PST/PDT (same time)
 
 glimpse(chat)
 chat[1, timestamp]
@@ -283,7 +299,7 @@ When the term frequency is multiplied with the inverse document frequency,
 we get tf-idf which allows us to see the most common words of a user that are less common among all users
 to see which words characterize users.
 
-```{r analysis_tf_idf}
+```{r analysis_tf_idf, fig.height = 10}
 word_tf_idf <- word_counts %>%
 	bind_tf_idf(word, username, N) %>%
 	setorder(-tf_idf)
@@ -328,10 +344,12 @@ bigram_counts %>%
 	geom_node_point(color = 'lightblue', size = 5) +
 	geom_node_text(aes(label = name), vjust = 1, hjust = 1) +
 	labs(title = 'Most Frequent Bigrams')
+```
 
-set.seed(88)
+```{r analysis_relationship_bigram_per_user_as_edges, fig.width = 8, fig.height = 10}
+set.seed(23)
 bigram_counts_per_user %>%
-	.[, head(.SD, 4), username] %>%
+	.[, head(.SD, 3), username] %>%
 	.[, .(word1, word2, username, N)] %T>%
 	glimpse() %>%
 	graph_from_data_frame() %T>%
@@ -345,5 +363,6 @@ bigram_counts_per_user %>%
 	geom_node_point(color = 'lightblue', size = 2) +
 	geom_node_text(aes(label = name), vjust = 1, hjust = 1) +
 	facet_edges(~username) +
-	labs(title = 'Most Frequent Bigrams by User as Edges')
+	labs(title = 'Most Frequent Bigrams by User as Edges') +
+	coord_cartesian(xlim = c(16,29), expand = TRUE)
 ```

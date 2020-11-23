@@ -8,31 +8,58 @@ editing this poorly written document into something nice.
 
 ## Data Acquisition
 
-To get the data needed for analysis, there are two methods. First is the
-discord api’s [Get Channel
+To get the data needed for analysis, one can go directly to the source
+via [Get Channel
 Message](https://discordapp.com/developers/docs/resources/channel#get-channel-messages)
-to manually retrieve the messages. The second, is to get a discord bot
-to do it for you. However, if you do not wish to setup a bot, you can
-use the first method to do bare api calls in python.
+or use an existing tool to do it for you. The most prominent utility is
+[DiscordChatExporter](https://github.com/Tyrrrz/DiscordChatExporter).
+Although the JSON schema it exports is slightly different to the Discord
+API spec, not counting added data by the tool, the data is easy to
+aquire and use.
 
-Big thanks to
-[DiscordArchiver](https://github.com/Jiiks/DiscordArchiver/blob/master/DiscordArchiver/Program.cs#L15)
-for the undocumented (and probably old api that may be discontinued on
-October 16, 2017) url parameter for the token.
-
-After creating `discord_chat_dl.py` and running it with the token, the
-channel id, and the id of the last message, you can download all of the
-chat logs in a json format.
+Using DiscordChatExporter, an auth token, and a channel id one can
+export all chat history in JSON format and then import it into R. Once
+imported, we can toss the extra data added about the channel export by
+directly acessing the nested list of messages.
 
 ## Data Import
 
 ``` r
 library(jsonlite)
 
-chat_json <- read_json('discord_chat_anonymized.json')
+# regular read of direct JSON file
+#chat_json <- read_json('./discord_chat_anonymized.json')$messages
+
+# in memory gunzip, highly recomended to compress large JSON logs
+# read_json(...) == fromJson(..., simplifyVector = FALSE)
+# but handles more than just a string filepath such as connections (R file objects)
+log_gzipped <- gzfile('./discord_chat_anonymized.json.gz', open = 'rb') # fromJSON needs binary
+chat_json <- fromJSON(log_gzipped, simplifyVector = FALSE)$messages
+close(log_gzipped)
+
+# check schema of first message
+str(chat_json[[1]])
 ```
 
-This imports the json chat log as an R list. However, the list is not
+    ## List of 11
+    ##  $ id                : chr "221469972705050624"
+    ##  $ type              : chr "Default"
+    ##  $ timestamp         : chr "2016-09-03T03:22:36.206+00:00"
+    ##  $ timestampEdited   : NULL
+    ##  $ callEndedTimestamp: NULL
+    ##  $ isPinned          : logi FALSE
+    ##  $ content           : chr "tovarish"
+    ##  $ author            :List of 5
+    ##   ..$ id           : chr "162781767122550784"
+    ##   ..$ name         : chr "Benjamin"
+    ##   ..$ discriminator: chr "8767"
+    ##   ..$ isBot        : logi FALSE
+    ##   ..$ avatarUrl    : chr "https://cdn.discordapp.com/avatars/162781767122550784/292f7eff05847dbae524ca6bf22b19bf.png"
+    ##  $ attachments       : list()
+    ##  $ embeds            : list()
+    ##  $ reactions         : list()
+
+This imports the json messages as an R list. However, the list is not
 uniform in fields across message entries as some messages have
 reactions, a feature introduced later in Discord’s development that
 messages before the update do not have. This inconsistency prevents
@@ -40,7 +67,7 @@ running the list into `data.table::rbindlist`, so I used an alternative
 method. I extracted the relevant fields with
 [purrr](https://cran.r-project.org/web/packages/purrr/vignettes/other-langs.html)
 and then stitched it back together into a
-[data.table](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html).
+[data.table](https://cran.r-project.org/web/packages/data.table/vignettcs/datatable-intro.html).
 I then checked the result with
 [dplyr’s](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html)
 glimpse. Note that time was converted to PST/PDT. All times shown will
@@ -55,26 +82,28 @@ library(dtplyr)
 
 chat <- data.table(
     timestamp = map_chr(chat_json, 'timestamp') %>% ymd_hms(),
-    username = map_chr(chat_json, c('author', 'username')) %>% as.factor(),
+    # Discord author JSON spec calls the field `username` not `name`
+    username = map_chr(chat_json, c('author', 'name')) %>% as.factor(),
     message = map_chr(chat_json, 'content')
-    )
+)
+rm(chat_json)
 
-chat[, timestamp := with_tz(timestamp, tzone = 'US/Pacific')] # convert to PST (same time)
+chat[, timestamp := with_tz(timestamp, tzone = 'US/Pacific')] # convert to PST/PDT (same time)
 
 glimpse(chat)
 ```
 
-    ## Rows: 245,977
+    ## Rows: 686,310
     ## Columns: 3
-    ## $ timestamp <dttm> 2017-09-12 01:03:34, 2017-09-12 01:03:17, 2017-09-12 01:03…
-    ## $ username  <fct> Benjamin, Benjamin, Benjamin, Benjamin, Wallace, Benjamin, …
-    ## $ message   <chr> "although the rate limits are probably the most *rate* limi…
+    ## $ timestamp <dttm> 2016-09-02 20:22:36, 2016-09-02 20:22:38, 2016-09-02 20:28…
+    ## $ username  <fct> Benjamin, Benjamin, Wallace, Wallace, Benjamin, Benjamin, B…
+    ## $ message   <chr> "tovarish", "really", "yeah", "so lets use this from now on…
 
 ``` r
 chat[1, timestamp]
 ```
 
-    ## [1] "2017-09-12 01:03:34 PDT"
+    ## [1] "2016-09-02 20:22:36 PDT"
 
 ## Data Tidying
 
@@ -112,11 +141,11 @@ words <- chat %>%
 glimpse(words)
 ```
 
-    ## Rows: 371,075
+    ## Rows: 1,158,391
     ## Columns: 3
-    ## $ timestamp <dttm> 2017-09-12 01:03:34, 2017-09-12 01:03:34, 2017-09-12 01:03…
-    ## $ username  <fct> Benjamin, Benjamin, Benjamin, Benjamin, Benjamin, Benjamin,…
-    ## $ word      <chr> "rate", "limits", "rate", "limiting", "goodbye", "performan…
+    ## $ timestamp <dttm> 2016-09-02 20:22:36, 2016-09-02 20:28:12, 2016-09-02 20:35…
+    ## $ username  <fct> Benjamin, Wallace, Benjamin, Benjamin, Benjamin, Benjamin, …
+    ## $ word      <chr> "tovarish", "yeah", "lol", "skype", "wont", "reacive", "ins…
 
 ### Bigram Tokenization
 
@@ -137,7 +166,7 @@ bigrams <- chat %>%
 glimpse(bigrams)
 ```
 
-    ## Rows: 196,469
+    ## Rows: 574,336
     ## Columns: 4
     ## $ timestamp <dttm> 2016-09-02 20:22:36, 2016-09-02 20:22:38, 2016-09-02 20:28…
     ## $ username  <fct> Benjamin, Benjamin, Wallace, Benjamin, Benjamin, Benjamin, …
@@ -158,22 +187,35 @@ word_counts <- words %>%
 word_counts[, head(.SD, 3), username]
 ```
 
-    ##     username   word    N
-    ##  1: Benjamin    lol 4148
-    ##  2: Benjamin   yeah 1418
-    ##  3: Benjamin      1 1391
-    ##  4:  Wallace     im 2005
-    ##  5:  Wallace   dont 1515
-    ##  6:  Wallace    lol 1346
-    ##  7:  Michael    lol 1192
-    ##  8:  Michael   yeah  514
-    ##  9:  Michael     uh  221
-    ## 10:    Molly    lol  278
-    ## 11:    Molly   yeah   78
-    ## 12:    Molly people   31
-    ## 13:    Peter   yeah   37
-    ## 14:    Peter people   17
-    ## 15:    Peter   guys   17
+    ##      username       word     N
+    ##  1:  Benjamin        lol 10669
+    ##  2:  Benjamin       yeah  5038
+    ##  3:  Benjamin         im  4222
+    ##  4:   Michael        lol  5032
+    ##  5:   Michael       yeah  2295
+    ##  6:   Michael        yea   803
+    ##  7:   Wallace      boris  4800
+    ##  8:   Wallace         im  4795
+    ##  9:   Wallace        lol  3556
+    ## 10:     Molly        lol  1465
+    ## 11:     Molly      boris  1254
+    ## 12:     Molly       yeah   889
+    ## 13:   MathBot          1   213
+    ## 14:   MathBot          2   196
+    ## 15:   MathBot          3    63
+    ## 16: freer-bot          1   147
+    ## 17: freer-bot unexpected    69
+    ## 18: freer-bot  expecting    69
+    ## 19:     Peter       yeah   114
+    ## 20:     Peter      boris    52
+    ## 21:     Peter       caje    50
+    ## 22:      Kate       it’s    70
+    ## 23:      Kate        i’m    68
+    ## 24:      Kate   aistaldo    43
+    ## 25:     Darth      books     8
+    ## 26:     Darth         cs     5
+    ## 27:     Darth       math     4
+    ##      username       word     N
 
 How about visually?
 
@@ -274,7 +316,7 @@ plot +
 chat[1, timestamp]
 ```
 
-    ## [1] "2017-09-12 01:03:34 PDT"
+    ## [1] "2016-09-02 20:22:36 PDT"
 
 ``` r
 words_by_hour <- words %>%
@@ -286,49 +328,54 @@ words_by_hour <- words %>%
 glimpse(words_by_hour)
 ```
 
-    ## Rows: 1,631
+    ## Rows: 6,362
     ## Columns: 3
-    ## $ timestamp     <dttm> 2017-09-12 00:00:00, 2017-09-11 20:00:00, 2017-09-11 1…
-    ## $ words_in_hour <int> 103, 387, 279, 30, 28, 18, 42, 103, 62, 13, 47, 34, 404…
-    ## $ hours_chunk   <int> 0, 20, 16, 12, 4, 0, 20, 16, 12, 4, 0, 16, 12, 8, 4, 0,…
+    ## $ timestamp     <dttm> 2016-09-02 20:00:00, 2016-09-03 00:00:00, 2016-09-03 0…
+    ## $ words_in_hour <int> 1151, 859, 1053, 478, 10, 45, 118, 521, 681, 18, 2, 5, …
+    ## $ hours_chunk   <int> 20, 0, 4, 8, 12, 16, 20, 0, 4, 8, 12, 16, 20, 0, 4, 8, …
 
 ``` r
 words_by_hour[, head(.SD, 3), hours_chunk]
 ```
 
     ##     hours_chunk           timestamp words_in_hour
-    ##  1:           0 2017-09-12 00:00:00           103
-    ##  2:           0 2017-09-11 00:00:00            18
-    ##  3:           0 2017-09-10 00:00:00            47
-    ##  4:          20 2017-09-11 20:00:00           387
-    ##  5:          20 2017-09-10 20:00:00            42
-    ##  6:          20 2017-09-08 20:00:00            32
-    ##  7:          16 2017-09-11 16:00:00           279
-    ##  8:          16 2017-09-10 16:00:00           103
-    ##  9:          16 2017-09-09 16:00:00            34
-    ## 10:          12 2017-09-11 12:00:00            30
-    ## 11:          12 2017-09-10 12:00:00            62
-    ## 12:          12 2017-09-09 12:00:00           404
-    ## 13:           4 2017-09-11 04:00:00            28
-    ## 14:           4 2017-09-10 04:00:00            13
-    ## 15:           4 2017-09-09 04:00:00            38
-    ## 16:           8 2017-09-09 08:00:00           405
-    ## 17:           8 2017-09-07 08:00:00           300
-    ## 18:           8 2017-09-06 08:00:00            41
+    ##  1:          20 2016-09-02 20:00:00          1151
+    ##  2:          20 2016-09-03 20:00:00           118
+    ##  3:          20 2016-09-04 20:00:00           446
+    ##  4:           0 2016-09-03 00:00:00           859
+    ##  5:           0 2016-09-04 00:00:00           521
+    ##  6:           0 2016-09-05 00:00:00           103
+    ##  7:           4 2016-09-03 04:00:00          1053
+    ##  8:           4 2016-09-04 04:00:00           681
+    ##  9:           4 2016-09-05 04:00:00          1272
+    ## 10:           8 2016-09-03 08:00:00           478
+    ## 11:           8 2016-09-04 08:00:00            18
+    ## 12:           8 2016-09-05 08:00:00           968
+    ## 13:          12 2016-09-03 12:00:00            10
+    ## 14:          12 2016-09-04 12:00:00             2
+    ## 15:          12 2016-09-05 12:00:00           567
+    ## 16:          16 2016-09-03 16:00:00            45
+    ## 17:          16 2016-09-04 16:00:00             5
+    ## 18:          16 2016-09-05 16:00:00           143
     ## 19:           1 2016-11-06 01:00:00           148
+    ## 20:           1 2017-11-05 01:00:00           414
+    ## 21:           1 2018-11-04 01:00:00             1
+    ## 22:          23 2019-03-09 23:00:00            31
+    ##     hours_chunk           timestamp words_in_hour
 
 ``` r
 words_by_hour[, .(.N), hours_chunk]
 ```
 
-    ##    hours_chunk   N
-    ## 1:           0 298
-    ## 2:          20 334
-    ## 3:          16 319
-    ## 4:          12 268
-    ## 5:           4 207
-    ## 6:           8 204
-    ## 7:           1   1
+    ##    hours_chunk    N
+    ## 1:          20 1299
+    ## 2:           0 1121
+    ## 3:           4  738
+    ## 4:           8  822
+    ## 5:          12 1120
+    ## 6:          16 1256
+    ## 7:           1    5
+    ## 8:          23    1
 
 ``` r
 copy(words)[, time := floor_date(timestamp, '4 hours')] %>%
@@ -337,18 +384,18 @@ copy(words)[, time := floor_date(timestamp, '4 hours')] %>%
     .[, timestamp]
 ```
 
-    ##                timestamp username      word                time hours_chunk
-    ##   1: 2016-11-06 03:56:55 Benjamin        ic 2016-11-06 01:00:00           1
-    ##   2: 2016-11-06 03:56:43 Benjamin       wtf 2016-11-06 01:00:00           1
-    ##   3: 2016-11-06 03:56:41 Benjamin     magic 2016-11-06 01:00:00           1
-    ##   4: 2016-11-06 03:56:41 Benjamin      mode 2016-11-06 01:00:00           1
-    ##   5: 2016-11-06 03:56:39 Benjamin       esc 2016-11-06 01:00:00           1
-    ##  ---                                                                       
-    ## 144: 2016-11-06 01:36:45 Benjamin customers 2016-11-06 01:00:00           1
-    ## 145: 2016-11-06 01:36:45 Benjamin returning 2016-11-06 01:00:00           1
-    ## 146: 2016-11-06 01:36:45 Benjamin remaining 2016-11-06 01:00:00           1
-    ## 147: 2016-11-06 01:36:45 Benjamin  software 2016-11-06 01:00:00           1
-    ## 148: 2016-11-06 01:36:45 Benjamin    update 2016-11-06 01:00:00           1
+    ##                 timestamp username    word                time hours_chunk
+    ##    1: 2016-11-06 01:36:45 Benjamin samsung 2016-11-06 01:00:00           1
+    ##    2: 2016-11-06 01:36:45 Benjamin      85 2016-11-06 01:00:00           1
+    ##    3: 2016-11-06 01:36:45 Benjamin percent 2016-11-06 01:00:00           1
+    ##    4: 2016-11-06 01:36:45 Benjamin    note 2016-11-06 01:00:00           1
+    ##    5: 2016-11-06 01:36:45 Benjamin      7s 2016-11-06 01:00:00           1
+    ##   ---                                                                     
+    ## 1063: 2020-11-01 02:36:46 Benjamin      ツ 2020-11-01 01:00:00           1
+    ## 1064: 2020-11-01 02:36:57 Benjamin    live 2020-11-01 01:00:00           1
+    ## 1065: 2020-11-01 02:36:57 Benjamin villain 2020-11-01 01:00:00           1
+    ## 1066: 2020-11-01 02:37:09 Benjamin   anger 2020-11-01 01:00:00           1
+    ## 1067: 2020-11-01 02:37:09 Benjamin quelled 2020-11-01 01:00:00           1
 
 ``` r
 unique(tz(chat[, timestamp]))
@@ -384,12 +431,12 @@ words_by_hour_per_user <- copy(words) %>%
 glimpse(words_by_hour_per_user)
 ```
 
-    ## Rows: 3,152
+    ## Rows: 14,351
     ## Columns: 4
-    ## $ timestamp              <dttm> 2017-09-12 00:00:00, 2017-09-12 00:00:00, 201…
-    ## $ username               <fct> Benjamin, Wallace, Benjamin, Wallace, Michael,…
-    ## $ words_in_hour_per_user <int> 97, 6, 113, 259, 15, 176, 79, 19, 2, 3, 12, 9,…
-    ## $ hours_chunk            <int> 0, 0, 20, 20, 20, 16, 16, 16, 16, 16, 12, 12, …
+    ## $ timestamp              <dttm> 2016-09-02 20:00:00, 2016-09-02 20:00:00, 201…
+    ## $ username               <fct> Benjamin, Wallace, Benjamin, Wallace, Wallace,…
+    ## $ words_in_hour_per_user <int> 935, 216, 511, 348, 555, 498, 44, 340, 94, 10,…
+    ## $ hours_chunk            <int> 20, 20, 0, 0, 4, 4, 8, 8, 8, 12, 16, 16, 20, 2…
 
 ``` r
 ggplot(words_by_hour_per_user, aes(timestamp, words_in_hour_per_user)) +
@@ -419,32 +466,45 @@ head(bigram_counts, 5)
 ```
 
     ##    word1 word2   N
-    ## 1:  holy  shit 333
-    ## 2:    im gonna 138
-    ## 3:   1st    qu  96
-    ## 4:   3rd    qu  96
-    ## 5:   min   1st  93
+    ## 1:  holy  shit 664
+    ## 2: makes sense 403
+    ## 3:    im gonna 271
+    ## 4:  copy paste 287
+    ## 5:     1     2 443
 
 ``` r
 bigram_counts_per_user[, head(.SD, 3), username]
 ```
 
-    ##     username  word1  word2   N
-    ##  1:  Wallace   holy   shit 331
-    ##  2:  Wallace     im  gonna 131
-    ##  3:  Wallace      2      3  80
-    ##  4: Benjamin    1st     qu  96
-    ##  5: Benjamin    3rd     qu  96
-    ##  6: Benjamin    min    1st  93
-    ##  7:  Michael   page  table  37
-    ##  8:  Michael      0      0  19
-    ##  9:  Michael  gonna   head  16
-    ## 10:    Molly dragon    age   6
-    ## 11:    Molly   dark  souls   4
-    ## 12:    Molly  amish people   4
-    ## 13:    Peter     11     10   3
-    ## 14:    Peter    red weapon   3
-    ## 15:    Peter      2      3   3
+    ##      username      word1     word2   N
+    ##  1:   Wallace       holy      shit 647
+    ##  2:   Wallace         im     gonna 243
+    ##  3:   Wallace          1         2 178
+    ##  4:  Benjamin      makes     sense 283
+    ##  5:  Benjamin       copy     paste 196
+    ##  6:  Benjamin          2         3 175
+    ##  7:   Michael       yeah       idk  65
+    ##  8:   Michael     visual    studio  52
+    ##  9:   Michael      gonna      head  51
+    ## 10:     Molly    morning     boris  56
+    ## 11:     Molly        bap       bap  48
+    ## 12:     Molly          0         0  35
+    ## 13:   MathBot    wolfram     alpha  43
+    ## 14:   MathBot  rendering    failed  35
+    ## 15:   MathBot     failed     check  35
+    ## 16: freer-bot unexpected expecting  41
+    ## 17: freer-bot      white     space  38
+    ## 18: freer-bot  expecting      ping  24
+    ## 19:     Peter         11        10   6
+    ## 20:     Peter       heck      yeah   4
+    ## 21:     Peter      feels       bad   4
+    ## 22:      Kate     garlic     toast   4
+    ## 23:      Kate     garlic     bread   4
+    ## 24:      Kate      green     giant   4
+    ## 25:     Darth       math     major   2
+    ## 26:     Darth       drop    school   2
+    ## 27:     Darth         ez        cs   1
+    ##      username      word1     word2   N
 
 ### Characteristic Words
 
@@ -471,17 +531,25 @@ word_tf_idf <- word_counts %>%
 word_tf_idf[, head(.SD, 2), username]
 ```
 
-    ##     username     word    N          tf       idf      tf_idf
-    ##  1:  Michael    shizz  193 0.006500724 1.6094379 0.010462512
-    ##  2:  Michael     file   87 0.002930378 0.5108256 0.001496912
-    ##  3:  Wallace       im 2005 0.012661185 0.5108256 0.006467658
-    ##  4:  Wallace     dont 1515 0.009566931 0.5108256 0.004887033
-    ##  5: Benjamin       im 1378 0.007820925 0.5108256 0.003995129
-    ##  6: Benjamin     dont 1311 0.007440662 0.5108256 0.003800881
-    ##  7:    Peter     sael    6 0.003462204 0.9162907 0.003172386
-    ##  8:    Peter  banshee    3 0.001731102 1.6094379 0.002786101
-    ##  9:    Molly chaotica    8 0.001568320 1.6094379 0.002524114
-    ## 10:    Molly     xaos    6 0.001176240 1.6094379 0.001893085
+    ##      username                 word    N           tf       idf      tf_idf
+    ##  1:   Wallace                         1 2.344309e-06        NA          NA
+    ##  2:   Wallace                 dont 3530 8.275409e-03 0.5877867 0.004864175
+    ##  3: freer-bot            expecting   69 8.603491e-02 0.5877867 0.050570174
+    ##  4: freer-bot           unexpected   69 8.603491e-02 0.4054651 0.034884155
+    ##  5:     Darth                  kys    4 1.923077e-02 1.0986123 0.021127159
+    ##  6:     Darth                 econ    4 1.923077e-02 0.8109302 0.015594812
+    ##  7:   MathBot www.wolframalpha.com   19 9.134615e-03 2.1972246 0.020070801
+    ##  8:   MathBot                alpha   44 2.115385e-02 0.5877867 0.012433949
+    ##  9:      Kate                 it’s   70 2.121212e-02 0.8109302 0.017201550
+    ## 10:      Kate                  i’m   68 2.060606e-02 0.8109302 0.016710077
+    ## 11:  Benjamin                   ツ 3207 6.308795e-03 0.8109302 0.005115992
+    ## 12:  Benjamin                 dont 4091 8.047795e-03 0.5877867 0.004730387
+    ## 13:     Peter                 sael   36 6.159110e-03 0.8109302 0.004994609
+    ## 14:     Peter                 yeah  114 1.950385e-02 0.2513144 0.004901599
+    ## 15:   Michael                shizz  617 4.439424e-03 1.0986123 0.004877206
+    ## 16:   Michael                  yea  803 5.777727e-03 0.8109302 0.004685333
+    ## 17:     Molly                  cos  361 4.995088e-03 0.8109302 0.004050668
+    ## 18:     Molly                 yeah  889 1.230092e-02 0.2513144 0.003091399
 
 ``` r
 # order within factors is wack but is correct as top tf-idf per user
@@ -529,9 +597,9 @@ bigram_counts %>%
 ![](README_files/figure-gfm/analysis_relationship_bigram-1.png)<!-- -->
 
 ``` r
-set.seed(88)
+set.seed(23)
 bigram_counts_per_user %>%
-    .[, head(.SD, 4), username] %>%
+    .[, head(.SD, 3), username] %>%
     .[, .(word1, word2, username, N)] %T>%
     glimpse() %>%
     graph_from_data_frame() %T>%
@@ -545,22 +613,27 @@ bigram_counts_per_user %>%
     geom_node_point(color = 'lightblue', size = 2) +
     geom_node_text(aes(label = name), vjust = 1, hjust = 1) +
     facet_edges(~username) +
-    labs(title = 'Most Frequent Bigrams by User as Edges')
+    labs(title = 'Most Frequent Bigrams by User as Edges') +
+    coord_cartesian(xlim = c(16,29), expand = TRUE)
 ```
 
-    ## Rows: 20
+    ## Rows: 27
     ## Columns: 4
-    ## $ word1    <chr> "holy", "im", "2", "1", "1st", "3rd", "min", "qu", "page", "…
-    ## $ word2    <chr> "shit", "gonna", "3", "2", "qu", "qu", "1st", "median", "tab…
-    ## $ username <fct> Wallace, Wallace, Wallace, Wallace, Benjamin, Benjamin, Benj…
-    ## $ N        <int> 331, 131, 80, 78, 96, 96, 93, 93, 37, 19, 16, 16, 6, 4, 4, 4…
-    ## IGRAPH 4aa04ff DN-- 32 20 -- 
+    ## $ word1    <chr> "holy", "im", "1", "makes", "copy", "2", "yeah", "visual", "…
+    ## $ word2    <chr> "shit", "gonna", "2", "sense", "paste", "3", "idk", "studio"…
+    ## $ username <fct> Wallace, Wallace, Wallace, Benjamin, Benjamin, Benjamin, Mic…
+    ## $ N        <int> 647, 243, 178, 283, 196, 175, 65, 52, 51, 56, 48, 35, 43, 35…
+    ## IGRAPH 3014c97 DN-- 46 27 -- 
     ## + attr: name (v/c), username (e/c), N (e/n)
-    ## + edges from 4aa04ff (vertex names):
-    ##  [1] holy      ->shit   im        ->gonna  2         ->3      1         ->2     
-    ##  [5] 1st       ->qu     3rd       ->qu     min       ->1st    qu        ->median
-    ##  [9] page      ->table  0         ->0      gonna     ->head   polynomial->time  
-    ## [13] dragon    ->age    dark      ->souls  amish     ->people pa        ->dutch 
-    ## [17] 11        ->10     red       ->weapon 2         ->3      ke        ->kai
+    ## + edges from 3014c97 (vertex names):
+    ##  [1] holy      ->shit      im        ->gonna     1         ->2        
+    ##  [4] makes     ->sense     copy      ->paste     2         ->3        
+    ##  [7] yeah      ->idk       visual    ->studio    gonna     ->head     
+    ## [10] morning   ->boris     bap       ->bap       0         ->0        
+    ## [13] wolfram   ->alpha     rendering ->failed    failed    ->check    
+    ## [16] unexpected->expecting white     ->space     expecting ->ping     
+    ## [19] 11        ->10        heck      ->yeah      feels     ->bad      
+    ## [22] garlic    ->toast     garlic    ->bread     green     ->giant    
+    ## + ... omitted several edges
 
-![](README_files/figure-gfm/analysis_relationship_bigram-2.png)<!-- -->
+![](README_files/figure-gfm/analysis_relationship_bigram_per_user_as_edges-1.png)<!-- -->
