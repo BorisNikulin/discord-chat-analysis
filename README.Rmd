@@ -28,7 +28,18 @@ you can download all of the chat logs in a json format.
 ```{r import_json}
 library(jsonlite)
 
-chat_json <- read_json('discord_chat_anonymized.json')
+# regular read of direct JSON file
+#chat_json <- read_json('./discord_chat_json_dce.json')$messages
+
+# in memory gunzip, highly recomended to compress large JSON logs
+# read_json(...) == fromJson(..., simplifyVector = FALSE)
+# but handles more than just a string filepath such as connections (R file objects)
+log_gzipped <- gzfile('./discord_chat_json_dce.json.gz', open = 'rb') # fromJSON needs binary
+chat_json <- fromJSON(log_gzipped, simplifyVector = FALSE)$messages
+close(log_gzipped)
+
+# check schema of first message
+str(chat_json[[1]])
 ```
 This imports the json chat log as an R list.
 However, the list is not uniform in fields across message entries as some messages have reactions,
@@ -36,7 +47,7 @@ a feature introduced later in Discord's development that messages before the upd
 This inconsistency prevents running the list into `data.table::rbindlist`, so I used an alternative method.
 I extracted the relevant fields with
 [purrr](https://cran.r-project.org/web/packages/purrr/vignettes/other-langs.html) and then stitched it back together into a
-[data.table](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html).
+[data.table](https://cran.r-project.org/web/packages/data.table/vignettcs/datatable-intro.html).
 I then checked the result with [dplyr's](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html) glimpse.
 Note that time was converted to PST/PDT.
 All times shown will be with repsect to PST/PDT.
@@ -50,9 +61,10 @@ library(dtplyr)
 
 chat <- data.table(
 	timestamp = map_chr(chat_json, 'timestamp') %>% ymd_hms(),
-	username = map_chr(chat_json, c('author', 'username')) %>% as.factor(),
+	username = map_chr(chat_json, c('author', 'name')) %>% as.factor(),
 	message = map_chr(chat_json, 'content')
-	)
+)
+rm(chat_json)
 
 chat[, timestamp := with_tz(timestamp, tzone = 'US/Pacific')] # convert to PST (same time)
 
