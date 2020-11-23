@@ -200,8 +200,9 @@ word_counts %>%
 ![](README_files/figure-gfm/analysis_word_counts_graphed-1.png)<!-- -->
 
 <details>
-
-<summary> WIP: Time Bases Analysis </summary>
+<summary>
+WIP: Time Bases Analysis
+</summary>
 
 ``` r
 #words_by_day <- words %>%
@@ -401,7 +402,6 @@ ggplot(words_by_hour_per_user, aes(timestamp, words_in_hour_per_user)) +
 ```
 
 ![](README_files/figure-gfm/analysis_hourly_chat_rate-2.png)<!-- -->
-
 </details>
 
 ### Bigram Counts
@@ -554,9 +554,9 @@ bigram_counts_per_user %>%
     ## $ word2    <chr> "shit", "gonna", "3", "2", "qu", "qu", "1st", "median", "tab…
     ## $ username <fct> Wallace, Wallace, Wallace, Wallace, Benjamin, Benjamin, Benj…
     ## $ N        <int> 331, 131, 80, 78, 96, 96, 93, 93, 37, 19, 16, 16, 6, 4, 4, 4…
-    ## IGRAPH 007a650 DN-- 32 20 -- 
+    ## IGRAPH 4aa04ff DN-- 32 20 -- 
     ## + attr: name (v/c), username (e/c), N (e/n)
-    ## + edges from 007a650 (vertex names):
+    ## + edges from 4aa04ff (vertex names):
     ##  [1] holy      ->shit   im        ->gonna  2         ->3      1         ->2     
     ##  [5] 1st       ->qu     3rd       ->qu     min       ->1st    qu        ->median
     ##  [9] page      ->table  0         ->0      gonna     ->head   polynomial->time  
